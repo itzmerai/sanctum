@@ -1,0 +1,13 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "unlock-capability",
+  "description": "Locked-down surface for the unlock window (KTD18). It may draw its own title bar and nothing else: no filesystem, no dialog, no clipboard, no store. Every vault operation it needs arrives through an explicitly allow-listed command.",
+  "local": true,
+  "windows": ["unlock"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-start-dragging",
+    "core:window:allow-minimize",
+    "core:window:allow-close"
+  ]
+}

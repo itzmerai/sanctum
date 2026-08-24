@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+dist-ssr/
+src-tauri/target/
+src-tauri/gen/
+
+# local vault data must never be committed
+*.db
+*.db-wal
+*.db-shm
+*.sanctumbak
+*.csv
+
+# editor / os
+.DS_Store
+Thumbs.db
+*.local
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# secrets
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12

@@ -1,0 +1,79 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Sanctum",
+  "mainBinaryName": "Sanctum",
+  "version": "0.1.0",
+  "identifier": "dev.sanctum.vault",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "label": "unlock",
+        "title": "Sanctum",
+        "width": 680,
+        "height": 680,
+        "resizable": false,
+        "maximizable": false,
+        "center": true,
+        "decorations": false,
+        "transparent": false,
+        "visible": true,
+        "theme": "Dark"
+      },
+      {
+        "label": "main",
+        "title": "Sanctum",
+        "width": 1120,
+        "height": 760,
+        "minWidth": 940,
+        "minHeight": 640,
+        "center": true,
+        "decorations": false,
+        "visible": false
+      }
+    ],
+    "security": {
+      "csp": {
+        "default-src": "'self'",
+        "script-src": "'self'",
+        "style-src": "'self' 'unsafe-inline'",
+        "img-src": "'self' data: asset: http://asset.localhost",
+        "font-src": "'self' data:",
+        "connect-src": "'self' ipc: http://ipc.localhost",
+        "object-src": "'none'",
+        "base-uri": "'self'",
+        "frame-ancestors": "'none'"
+      },
+      "freezePrototype": true
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "copyright": "Sanctum",
+    "category": "Utility",
+    "shortDescription": "Local-first encrypted vault",
+    "longDescription": "Sanctum keeps credentials, notes, tasks, calendar and income in a single encrypted local store. No accounts, no cloud, no network dependency.",
+    "windows": {
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "http://timestamp.digicert.com",
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["English"]
+      }
+    }
+  },
+  "plugins": {}
+}

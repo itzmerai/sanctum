@@ -1,0 +1,31 @@
+/* Minimal reset only. The design-token layer (theme, accent, font size) lands
+   in U8 from docs/reference/visual-grounding.md. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The app draws its own title bar (decorations are off on both windows), so no
+   part of the page may be text-selectable by accident during a drag. */
+body {
+  user-select: none;
+}
+
+input,
+textarea,
+[contenteditable='true'] {
+  user-select: text;
+}
