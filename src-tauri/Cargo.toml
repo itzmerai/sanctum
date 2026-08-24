@@ -21,6 +21,19 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
 
+# --- crypto core (U2) -------------------------------------------------------
+# Argon2id KDF, AES-256-GCM AEAD, and explicit memory zeroing.
+#
+# Randomness comes from `getrandom` rather than `rand`: aes-gcm 0.10 pins
+# rand_core 0.6 while rand 0.9 uses rand_core 0.9, and mixing them puts two
+# incompatible OsRng types in scope. getrandom is the OS CSPRNG that rand's
+# OsRng wraps anyway, so this is the same entropy with one less layer.
+argon2 = { version = "0.5", features = ["std"] }
+aes-gcm = { version = "0.10.3", features = ["std"] }
+getrandom = "0.3"
+zeroize = { version = "1", features = ["derive"] }
+subtle = "2"
+
 [features]
 # Enabled by `tauri dev`; keeps devtools out of release bundles.
 default = []

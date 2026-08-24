@@ -11,6 +11,8 @@
 //! - `clipboard` (U7) Windows clipboard exclusion + guarded clear
 //! - `activity`  (U19) local activity log
 
+pub mod crypto;
+
 /// Builds and runs the Tauri application.
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
