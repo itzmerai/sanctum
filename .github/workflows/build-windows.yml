@@ -3,9 +3,12 @@ name: build-windows
 # Windows is the only v1 target (KTD6) and the build runs on a real Windows
 # host from day one (KTD19) -- WSL cross-compilation is not a supported path
 # for the Tauri bundler.
+# Only the default branch on push. A branch with an open PR would otherwise
+# fire both triggers and run every check twice, which clutters the PR's status
+# list and makes a finishing second run look like a stuck first one.
 on:
   push:
-    branches: ['**']
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
