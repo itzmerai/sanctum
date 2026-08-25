@@ -233,3 +233,18 @@
 .recovery__confirm {
   text-align: left;
 }
+
+.lock__chrome .wincontrols {
+  margin-left: auto;
+}
+.lock__chrome .wincontrol {
+  color: var(--lock-muted);
+}
+.lock__chrome .wincontrol:hover {
+  background: rgb(255 255 255 / 0.08);
+  color: var(--lock-text);
+}
+.lock__chrome .wincontrol--close:hover {
+  background: #c42b1c;
+  color: #fff;
+}

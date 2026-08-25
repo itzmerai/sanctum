@@ -237,3 +237,25 @@
     grid-auto-rows: minmax(70px, auto);
   }
 }
+
+.cal__dayAdd {
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 4px;
+  align-self: flex-start;
+}
+.cal__dayAdd:hover {
+  color: var(--accent);
+}
+
+/* Task chips are buttons now; strip the default button chrome. */
+button.cal__chip {
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  width: 100%;
+}

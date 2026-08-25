@@ -6,6 +6,7 @@
  * leaving it to the UI.
  */
 import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router'
 
 import { Icon } from '../../components/Icon'
 import { Modal } from '../../components/Modal'
@@ -27,6 +28,7 @@ export const FOLDER_COLORS = [
 type Kind = 'passwords' | 'notes'
 
 export function FoldersPage() {
+  const navigate = useNavigate()
   const [kind, setKind] = useState<Kind>('passwords')
   const [items, setItems] = useState<Folder[]>([])
   const [loading, setLoading] = useState(true)
@@ -118,7 +120,15 @@ export function FoldersPage() {
               <span className="fold__icon" style={{ background: folder.color }} aria-hidden="true">
                 <Icon name="folder" size={15} />
               </span>
-              <span className="fold__text">
+              <button
+                className="fold__text"
+                onClick={() =>
+                  navigate(kind === 'notes' ? '/notes' : '/vault', {
+                    state: { folderId: folder.id, folderName: folder.name },
+                  })
+                }
+                aria-label={`Open ${folder.name}`}
+              >
                 <span className="fold__name">{folder.name}</span>
                 <span className="fold__items">
                   {folder.itemCount} item{folder.itemCount === 1 ? '' : 's'}
@@ -126,7 +136,7 @@ export function FoldersPage() {
                     <Icon name="star-filled" size={11} className="fold__star" />
                   )}
                 </span>
-              </span>
+              </button>
               <FolderMenu
                 folder={folder}
                 onRename={() => setEditing(folder)}

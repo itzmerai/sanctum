@@ -31,6 +31,8 @@ export function VaultPage() {
   const [creating, setCreating] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [seedPassword, setSeedPassword] = useState<string | null>(null)
+  // Set when arriving from a folder card, so the list shows that folder only.
+  const [folderFilter, setFolderFilter] = useState<{ id: number; name: string } | null>(null)
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -42,10 +44,18 @@ export function VaultPage() {
   // state. Consume it once and clear it, so a later back-navigation does not
   // silently reopen the form with a stale secret.
   useEffect(() => {
-    const passed = (location.state as { generatedPassword?: string } | null)?.generatedPassword
-    if (!passed) return
-    setSeedPassword(passed)
-    setCreating(true)
+    const state = location.state as
+      | { generatedPassword?: string; folderId?: number; folderName?: string }
+      | null
+    if (!state) return
+
+    if (state.generatedPassword) {
+      setSeedPassword(state.generatedPassword)
+      setCreating(true)
+    }
+    if (typeof state.folderId === 'number') {
+      setFolderFilter({ id: state.folderId, name: state.folderName ?? 'Folder' })
+    }
     navigate(location.pathname, { replace: true, state: null })
   }, [location, navigate])
 
@@ -64,6 +74,7 @@ export function VaultPage() {
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase()
     return items.filter((item) => {
+      if (folderFilter && item.folderId !== folderFilter.id) return false
       if (tag && !item.tags.includes(tag)) return false
       if (!needle) return true
       return (
@@ -74,7 +85,7 @@ export function VaultPage() {
         item.tags.some((t) => t.toLowerCase().includes(needle))
       )
     })
-  }, [items, query, tag])
+  }, [items, query, tag, folderFilter])
 
   async function copyPassword(id: number) {
     try {
@@ -170,6 +181,16 @@ export function VaultPage() {
         </button>
       </div>
 
+      {folderFilter && (
+        <p className="vault__filter">
+          <Icon name="folder" size={14} />
+          Showing <strong>{folderFilter.name}</strong>
+          <button className="vault__clearFilter" onClick={() => setFolderFilter(null)}>
+            Show all
+          </button>
+        </p>
+      )}
+
       {error && <p className="vault__error">{error}</p>}
 
       {loading ? (
@@ -182,7 +203,9 @@ export function VaultPage() {
           <p>
             {items.length === 0
               ? 'No credentials yet. Add your first one to get started.'
-              : 'Nothing matches that search.'}
+              : folderFilter
+                ? `Nothing in ${folderFilter.name} yet.`
+                : 'Nothing matches that search.'}
           </p>
           {items.length === 0 && (
             <button className="btn btn-primary" onClick={() => setCreating(true)}>
@@ -245,6 +268,11 @@ export function VaultPage() {
             setCreating(false)
             setEditing(null)
             setSeedPassword(null)
+            // Clear anything narrowing the list. Saving and then not seeing the
+            // new entry is indistinguishable from the save having failed.
+            setQuery('')
+            setTag('')
+            setFolderFilter(null)
             await loadCredentials()
           }}
         />

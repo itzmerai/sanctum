@@ -93,6 +93,14 @@ export function CredentialForm({ existing, seedPassword, onClose, onSaved }: Pro
   const tooManyTags = tags.length > MAX_TAGS
   const canSave = name.trim().length > 0 && !tooManyTags && !busy
 
+  // A disabled button with no explanation is a dead end: the user presses it,
+  // nothing happens, and there is nowhere to look for why.
+  const blockedReason = tooManyTags
+    ? `Remove a tag — a credential can have at most ${MAX_TAGS}.`
+    : name.trim().length === 0
+      ? 'Give it a name to save.'
+      : null
+
   async function generatePassword() {
     const value = await generator.generate({
       length: 20,
@@ -163,6 +171,7 @@ export function CredentialForm({ existing, seedPassword, onClose, onSaved }: Pro
             form="credential-form"
             className="btn btn-primary"
             disabled={!canSave}
+            title={blockedReason ?? undefined}
           >
             {busy ? 'Saving…' : 'Save'}
           </button>
@@ -334,6 +343,10 @@ export function CredentialForm({ existing, seedPassword, onClose, onSaved }: Pro
               : `${tags.length} of ${MAX_TAGS} tags used.`}
           </p>
         </div>
+
+        {blockedReason && !error && (
+          <p className="form__hint">{blockedReason}</p>
+        )}
 
         {error && (
           <p className="form__hint" data-error="true" role="alert">

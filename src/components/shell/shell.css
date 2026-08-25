@@ -253,3 +253,34 @@
   margin: 0;
   max-width: 36ch;
 }
+
+/* --- window controls (R4) --------------------------------------------------
+ * Both windows run with decorations off, so these replace what the OS would
+ * otherwise draw. `no-drag` matters: without it they sit inside the drag
+ * region and a click would move the window instead of pressing the button. */
+
+.wincontrols {
+  display: flex;
+  -webkit-app-region: no-drag;
+  margin-left: auto;
+}
+
+.wincontrol {
+  width: 44px;
+  height: var(--titlebar-h);
+  display: grid;
+  place-items: center;
+  border: none;
+  background: none;
+  color: #c9c9c2;
+  cursor: pointer;
+}
+.wincontrol:hover {
+  background: rgb(255 255 255 / 0.1);
+  color: #fff;
+}
+.wincontrol--close:hover {
+  /* The Windows convention. Getting this wrong makes close feel unfamiliar. */
+  background: #c42b1c;
+  color: #fff;
+}

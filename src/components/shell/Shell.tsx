@@ -18,6 +18,7 @@ import { useVault } from '../../store/useVault'
 import { SanctumMark, Wordmark } from '../Brand'
 import { CommandPalette } from '../CommandPalette'
 import { Icon, type IconName } from '../Icon'
+import { WindowControls } from '../WindowControls'
 import './shell.css'
 
 interface NavItem {
@@ -161,6 +162,7 @@ export function Shell() {
           <kbd>Ctrl K</kbd>
         </button>
         <div className="titlebar__spacer" />
+        <WindowControls />
       </header>
 
       {!hidden && (
