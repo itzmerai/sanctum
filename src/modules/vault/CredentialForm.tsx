@@ -27,27 +27,31 @@ const SCORE_LABELS = ['Very weak', 'Weak', 'Fair', 'Strong', 'Excellent']
 
 interface Props {
   existing: Credential | null
+  /** A password handed over by the generator (R25). */
+  seedPassword?: string | null
   onClose: () => void
   onSaved: () => void | Promise<void>
 }
 
 interface FolderOption {
-  id: number
+  id: string
   name: string
 }
 
-export function CredentialForm({ existing, onClose, onSaved }: Props) {
+export function CredentialForm({ existing, seedPassword, onClose, onSaved }: Props) {
   const [name, setName] = useState(existing?.name ?? '')
   const [username, setUsername] = useState(existing?.username ?? '')
-  const [password, setPassword] = useState('')
+  const [password, setPassword] = useState(seedPassword ?? '')
   const [passwordTouched, setPasswordTouched] = useState(existing === null)
   const [website, setWebsite] = useState(existing?.website ?? '')
   const [notes, setNotes] = useState(existing?.notes ?? '')
   const [tagText, setTagText] = useState(existing?.tags.join(', ') ?? '')
-  const [folderId, setFolderId] = useState<number | null>(existing?.folderId ?? null)
+  const [folderId, setFolderId] = useState<string | null>(existing?.folderId ?? null)
   const [favorite, setFavorite] = useState(existing?.favorite ?? false)
 
-  const [reveal, setReveal] = useState(false)
+  // A generated password arrives visible: the user just chose it on screen,
+  // and masking it here would only invite a needless reveal click.
+  const [reveal, setReveal] = useState(Boolean(seedPassword))
   const [strength, setStrength] = useState<StrengthReport | null>(null)
   const [options, setOptions] = useState<FolderOption[]>([])
   const [busy, setBusy] = useState(false)
@@ -88,6 +92,14 @@ export function CredentialForm({ existing, onClose, onSaved }: Props) {
 
   const tooManyTags = tags.length > MAX_TAGS
   const canSave = name.trim().length > 0 && !tooManyTags && !busy
+
+  // A disabled button with no explanation is a dead end: the user presses it,
+  // nothing happens, and there is nowhere to look for why.
+  const blockedReason = tooManyTags
+    ? `Remove a tag — a credential can have at most ${MAX_TAGS}.`
+    : name.trim().length === 0
+      ? 'Give it a name to save.'
+      : null
 
   async function generatePassword() {
     const value = await generator.generate({
@@ -159,6 +171,7 @@ export function CredentialForm({ existing, onClose, onSaved }: Props) {
             form="credential-form"
             className="btn btn-primary"
             disabled={!canSave}
+            title={blockedReason ?? undefined}
           >
             {busy ? 'Saving…' : 'Save'}
           </button>
@@ -265,7 +278,8 @@ export function CredentialForm({ existing, onClose, onSaved }: Props) {
               className="input"
               value={folderId ?? ''}
               onChange={(event) =>
-                setFolderId(event.target.value === '' ? null : Number(event.target.value))
+                // No Number(): ids are strings precisely because they do not survive one.
+                setFolderId(event.target.value === '' ? null : event.target.value)
               }
             >
               <option value="">No folder</option>
@@ -330,6 +344,10 @@ export function CredentialForm({ existing, onClose, onSaved }: Props) {
               : `${tags.length} of ${MAX_TAGS} tags used.`}
           </p>
         </div>
+
+        {blockedReason && !error && (
+          <p className="form__hint">{blockedReason}</p>
+        )}
 
         {error && (
           <p className="form__hint" data-error="true" role="alert">

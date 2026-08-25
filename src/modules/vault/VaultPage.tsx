@@ -8,6 +8,7 @@
  * thousand entries this is the first thing that would need revisiting.
  */
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router'
 
 import { Icon } from '../../components/Icon'
 import { CommandError, type Credential, clipboard, credentials } from '../../lib/ipc'
@@ -25,14 +26,38 @@ export function VaultPage() {
   const [view, setView] = useState<View>('list')
   const [query, setQuery] = useState('')
   const [tag, setTag] = useState('')
-  const [detailId, setDetailId] = useState<number | null>(null)
+  const [detailId, setDetailId] = useState<string | null>(null)
   const [editing, setEditing] = useState<Credential | null>(null)
   const [creating, setCreating] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [seedPassword, setSeedPassword] = useState<string | null>(null)
+  // Set when arriving from a folder card, so the list shows that folder only.
+  const [folderFilter, setFolderFilter] = useState<{ id: string; name: string } | null>(null)
+  const location = useLocation()
+  const navigate = useNavigate()
 
   useEffect(() => {
     void loadCredentials()
   }, [loadCredentials])
+
+  // R25: "Use in new credential" hands a generated password over in router
+  // state. Consume it once and clear it, so a later back-navigation does not
+  // silently reopen the form with a stale secret.
+  useEffect(() => {
+    const state = location.state as
+      | { generatedPassword?: string; folderId?: string; folderName?: string }
+      | null
+    if (!state) return
+
+    if (state.generatedPassword) {
+      setSeedPassword(state.generatedPassword)
+      setCreating(true)
+    }
+    if (state.folderId) {
+      setFolderFilter({ id: state.folderId, name: state.folderName ?? 'Folder' })
+    }
+    navigate(location.pathname, { replace: true, state: null })
+  }, [location, navigate])
 
   useEffect(() => {
     if (!toast) return
@@ -49,6 +74,7 @@ export function VaultPage() {
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase()
     return items.filter((item) => {
+      if (folderFilter && item.folderId !== folderFilter.id) return false
       if (tag && !item.tags.includes(tag)) return false
       if (!needle) return true
       return (
@@ -59,9 +85,9 @@ export function VaultPage() {
         item.tags.some((t) => t.toLowerCase().includes(needle))
       )
     })
-  }, [items, query, tag])
+  }, [items, query, tag, folderFilter])
 
-  async function copyPassword(id: number) {
+  async function copyPassword(id: string) {
     try {
       const receipt = await clipboard.copyPassword(id)
       setToast(
@@ -79,7 +105,7 @@ export function VaultPage() {
     await loadCredentials()
   }
 
-  async function remove(id: number) {
+  async function remove(id: string) {
     await credentials.remove(id)
     setDetailId(null)
     await loadCredentials()
@@ -155,6 +181,16 @@ export function VaultPage() {
         </button>
       </div>
 
+      {folderFilter && (
+        <p className="vault__filter">
+          <Icon name="folder" size={14} />
+          Showing <strong>{folderFilter.name}</strong>
+          <button className="vault__clearFilter" onClick={() => setFolderFilter(null)}>
+            Show all
+          </button>
+        </p>
+      )}
+
       {error && <p className="vault__error">{error}</p>}
 
       {loading ? (
@@ -167,7 +203,9 @@ export function VaultPage() {
           <p>
             {items.length === 0
               ? 'No credentials yet. Add your first one to get started.'
-              : 'Nothing matches that search.'}
+              : folderFilter
+                ? `Nothing in ${folderFilter.name} yet.`
+                : 'Nothing matches that search.'}
           </p>
           {items.length === 0 && (
             <button className="btn btn-primary" onClick={() => setCreating(true)}>
@@ -220,13 +258,21 @@ export function VaultPage() {
       {(creating || editing) && (
         <CredentialForm
           existing={editing}
+          seedPassword={seedPassword}
           onClose={() => {
             setCreating(false)
             setEditing(null)
+            setSeedPassword(null)
           }}
           onSaved={async () => {
             setCreating(false)
             setEditing(null)
+            setSeedPassword(null)
+            // Clear anything narrowing the list. Saving and then not seeing the
+            // new entry is indistinguishable from the save having failed.
+            setQuery('')
+            setTag('')
+            setFolderFilter(null)
             await loadCredentials()
           }}
         />

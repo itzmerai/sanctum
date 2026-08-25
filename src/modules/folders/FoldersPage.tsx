@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { Icon } from '../../components/Icon'
 import { Modal } from '../../components/Modal'
+import { FolderContents } from './FolderContents'
 import { CommandError, credentials, folders, type Folder } from '../../lib/ipc'
 import './folders.css'
 
@@ -33,6 +34,9 @@ export function FoldersPage() {
   const [editing, setEditing] = useState<Folder | null>(null)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Opening a folder shows its contents here rather than navigating to the
+  // Vault or Notes tab, which would lose the place you opened it from.
+  const [open, setOpen] = useState<Folder | null>(null)
 
   const load = useCallback(async (which: Kind) => {
     setLoading(true)
@@ -57,9 +61,21 @@ export function FoldersPage() {
     await load(kind)
   }
 
-  async function remove(id: number) {
+  async function remove(id: string) {
     await folders.remove(id)
     await load(kind)
+  }
+
+  if (open) {
+    return (
+      <div data-testid="route-folders">
+        <FolderContents
+          folder={open}
+          onBack={() => setOpen(null)}
+          onChanged={() => load(kind)}
+        />
+      </div>
+    )
   }
 
   return (
@@ -118,7 +134,11 @@ export function FoldersPage() {
               <span className="fold__icon" style={{ background: folder.color }} aria-hidden="true">
                 <Icon name="folder" size={15} />
               </span>
-              <span className="fold__text">
+              <button
+                className="fold__text"
+                onClick={() => setOpen(folder)}
+                aria-label={`Open ${folder.name}`}
+              >
                 <span className="fold__name">{folder.name}</span>
                 <span className="fold__items">
                   {folder.itemCount} item{folder.itemCount === 1 ? '' : 's'}
@@ -126,7 +146,7 @@ export function FoldersPage() {
                     <Icon name="star-filled" size={11} className="fold__star" />
                   )}
                 </span>
-              </span>
+              </button>
               <FolderMenu
                 folder={folder}
                 onRename={() => setEditing(folder)}

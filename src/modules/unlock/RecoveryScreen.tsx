@@ -8,6 +8,7 @@
 import { useState } from 'react'
 
 import { Wordmark } from '../../components/Brand'
+import { WindowControls } from '../../components/WindowControls'
 import { CommandError, session } from '../../lib/ipc'
 import './lock.css'
 
@@ -48,6 +49,7 @@ export function RecoveryScreen({ onUnlocked, onCancel }: Props) {
     <div className="lock" data-tauri-drag-region>
       <header className="lock__chrome" data-tauri-drag-region>
         <Wordmark size={18} />
+        <WindowControls maximizable={false} />
       </header>
 
       <main className="lock__body">

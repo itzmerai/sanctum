@@ -9,14 +9,17 @@
  * unlock window. That is the frontend half of KTD15 — the key being gone in
  * Rust does not help if the WebView is still holding decrypted rows.
  */
-import { useEffect } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router'
+import { useEffect, useState } from 'react'
+import { NavLink, Outlet } from 'react-router'
 
 import { events, hasBackend, session } from '../../lib/ipc'
 import { applyAppearance, useAppearance } from '../../store/useAppearance'
 import { useVault } from '../../store/useVault'
-import { SanctumMark, Wordmark } from '../Brand'
+import { Avatar } from '../Avatar'
+import { Wordmark } from '../Brand'
+import { CommandPalette } from '../CommandPalette'
 import { Icon, type IconName } from '../Icon'
+import { WindowControls } from '../WindowControls'
 import './shell.css'
 
 interface NavItem {
@@ -46,10 +49,10 @@ const BOTTOM: NavItem[] = [
 ]
 
 export function Shell() {
-  const navigate = useNavigate()
   const { theme, accent, fontSize, sidebar, displayName, cycleSidebar, toggleTheme } =
     useAppearance()
   const { status, refreshStatus, clearDecrypted, lock } = useVault()
+  const [paletteOpen, setPaletteOpen] = useState(false)
 
   useEffect(() => {
     applyAppearance({ theme, accent, fontSize })
@@ -87,6 +90,18 @@ export function Shell() {
   async function handleLock() {
     await lock()
   }
+
+  // R16: Ctrl+K (Cmd+K on a Mac keyboard) opens global search.
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        setPaletteOpen((open) => !open)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   // Real interaction restarts the idle window. Deliberately not wired to
   // polling or focus events, which would keep an unattended machine unlocked.
@@ -142,20 +157,19 @@ export function Shell() {
           <Icon name="menu" />
         </button>
         <Wordmark size={17} />
-        <button className="titlebar__search" onClick={() => navigate('/vault')}>
+        <button className="titlebar__search" onClick={() => setPaletteOpen(true)}>
           <Icon name="search" />
           <span>Search</span>
           <kbd>Ctrl K</kbd>
         </button>
         <div className="titlebar__spacer" />
+        <WindowControls />
       </header>
 
       {!hidden && (
         <aside className="sidebar">
           <div className="sidebar__account">
-            <div className="sidebar__avatar" aria-hidden="true">
-              <SanctumMark size={16} />
-            </div>
+            <Avatar size={28} className="sidebar__avatar" />
             {!collapsed && <span className="sidebar__name">{name}</span>}
             {!collapsed && (
               <button
@@ -193,6 +207,8 @@ export function Shell() {
           <Outlet />
         )}
       </main>
+
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
   )
 }

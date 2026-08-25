@@ -11,6 +11,7 @@ use super::{with_dek, AppState, CommandError, CommandResult};
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FolderDto {
+    #[serde(with = "crate::commands::ids::as_string")]
     pub id: i64,
     pub kind: String,
     pub name: String,
@@ -58,25 +59,27 @@ pub fn create_folder(
     kind: String,
     name: String,
     color: String,
-) -> CommandResult<i64> {
+) -> CommandResult<String> {
     if name.trim().is_empty() {
         return Err(CommandError::new(
             "validation",
             "A folder name is required.",
         ));
     }
-    with_dek(&state, |vault, dek| {
+    Ok(with_dek(&state, |vault, dek| {
         vault.insert_folder(dek, &kind, name.trim(), &color)
-    })
+    })?
+    .to_string())
 }
 
 #[tauri::command]
 pub fn update_folder(
     state: tauri::State<'_, AppState>,
-    id: i64,
+    id: String,
     name: String,
     color: String,
 ) -> CommandResult<()> {
+    let id = crate::commands::ids::parse_id(&id)?;
     if name.trim().is_empty() {
         return Err(CommandError::new(
             "validation",
@@ -89,7 +92,8 @@ pub fn update_folder(
 }
 
 #[tauri::command]
-pub fn delete_folder(state: tauri::State<'_, AppState>, id: i64) -> CommandResult<()> {
+pub fn delete_folder(state: tauri::State<'_, AppState>, id: String) -> CommandResult<()> {
+    let id = crate::commands::ids::parse_id(&id)?;
     with_dek(&state, |vault, _dek| vault.delete_folder(id))
 }
 

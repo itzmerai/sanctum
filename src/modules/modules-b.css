@@ -770,3 +770,43 @@
     display: none;
   }
 }
+
+/* --- profile picture (R36) -------------------------------------------------- */
+
+.account__picture {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+.account__pick {
+  position: relative;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 50%;
+  line-height: 0;
+}
+.account__pick:hover .account__pickOverlay,
+.account__pick:focus-visible .account__pickOverlay {
+  opacity: 1;
+}
+
+.account__pickOverlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.55);
+  color: #fff;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+
+.account__pictureActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}

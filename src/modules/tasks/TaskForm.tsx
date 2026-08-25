@@ -22,16 +22,30 @@ const PRIORITIES: { value: TaskPriority; label: string }[] = [
 interface Props {
   existing: Task | null
   initialStatus: TaskStatus
+  /** Pre-fills the due date when creating from a calendar day. */
+  initialDueDate?: number | null
   onClose: () => void
   onSaved: () => void | Promise<void>
 }
 
-export function TaskForm({ existing, initialStatus, onClose, onSaved }: Props) {
+export function TaskForm({
+  existing,
+  initialStatus,
+  initialDueDate,
+  onClose,
+  onSaved,
+}: Props) {
   const [title, setTitle] = useState(existing?.title ?? '')
   const [description, setDescription] = useState(existing?.description ?? '')
   const [status, setStatus] = useState<TaskStatus>(existing?.status ?? initialStatus)
   const [priority, setPriority] = useState<TaskPriority>(existing?.priority ?? 'medium')
-  const [due, setDue] = useState(existing?.dueDate ? formatIsoDate(existing.dueDate) : '')
+  const [due, setDue] = useState(
+    existing?.dueDate
+      ? formatIsoDate(existing.dueDate)
+      : initialDueDate
+        ? formatIsoDate(initialDueDate)
+        : '',
+  )
   const [tagText, setTagText] = useState(existing?.tags.join(', ') ?? '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)

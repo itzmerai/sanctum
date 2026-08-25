@@ -16,6 +16,7 @@ pub mod data;
 pub mod entities;
 pub mod favicon;
 pub mod folders;
+pub mod ids;
 pub mod rotate_cmds;
 pub mod session_cmds;
 pub mod setup;

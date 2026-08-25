@@ -11,11 +11,12 @@
  * dependency. `react-day-picker` is still the right choice for the date inputs
  * in the task and income forms, where picking is the whole job.
  */
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Icon } from '../../components/Icon'
 import { formatDay, formatMoney, isOverdue } from '../../lib/format'
 import { CommandError, income, tasks, type IncomeEntry, type Task } from '../../lib/ipc'
+import { TaskForm } from '../tasks/TaskForm'
 import './calendar.css'
 
 type View = 'week' | 'month' | 'year'
@@ -57,22 +58,27 @@ export function CalendarPage() {
   const [incomeList, setIncomeList] = useState<IncomeEntry[]>([])
   const [query, setQuery] = useState('')
   const [error, setError] = useState<string | null>(null)
+  // Creating from a day cell pre-fills that date, which is the whole point of
+  // adding a task from a calendar rather than from the task list.
+  const [creatingOn, setCreatingOn] = useState<number | null>(null)
+  const [editing, setEditing] = useState<Task | null>(null)
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const [t, i] = await Promise.all([tasks.list(), income.list()])
-        setTaskList(t)
-        setIncomeList(i)
-        setError(null)
-      } catch (raw) {
-        if (!(raw instanceof CommandError && raw.kind === 'locked')) {
-          setError(raw instanceof Error ? raw.message : String(raw))
-        }
+  const load = useCallback(async () => {
+    try {
+      const [t, i] = await Promise.all([tasks.list(), income.list()])
+      setTaskList(t)
+      setIncomeList(i)
+      setError(null)
+    } catch (raw) {
+      if (!(raw instanceof CommandError && raw.kind === 'locked')) {
+        setError(raw instanceof Error ? raw.message : String(raw))
       }
     }
-    void load()
   }, [])
+
+  useEffect(() => {
+    void load()
+  }, [load])
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase()
@@ -184,6 +190,13 @@ export function CalendarPage() {
               <button className="iconbtn" onClick={() => shift(1)} aria-label="Next">
                 ›
               </button>
+              <button
+                className="toolbar__add"
+                onClick={() => setCreatingOn(Date.now())}
+                aria-label="New task"
+              >
+                <Icon name="plus" />
+              </button>
             </div>
           </div>
         </header>
@@ -256,16 +269,23 @@ export function CalendarPage() {
                       data-outside={outside}
                       data-today={sameDay(day.getTime(), Date.now())}
                     >
-                      <span className="cal__dayNum">{day.getDate()}</span>
+                      <button
+                        className="cal__dayNum cal__dayAdd"
+                        onClick={() => setCreatingOn(day.getTime())}
+                        aria-label={`Add a task due ${day.toDateString()}`}
+                      >
+                        {day.getDate()}
+                      </button>
                       {dayTasks.slice(0, 3).map((task) => (
-                        <span
+                        <button
                           className={`cal__chip cal__chip--${task.priority}`}
                           key={task.id}
                           data-done={task.status === 'completed'}
                           title={task.title}
+                          onClick={() => setEditing(task)}
                         >
                           {task.title}
-                        </span>
+                        </button>
                       ))}
                       {dayTasks.length > 3 && (
                         <span className="cal__more">+{dayTasks.length - 3} more</span>
@@ -334,6 +354,23 @@ export function CalendarPage() {
           </div>
         </section>
       </aside>
+
+      {(creatingOn !== null || editing) && (
+        <TaskForm
+          existing={editing}
+          initialStatus="todo"
+          initialDueDate={creatingOn}
+          onClose={() => {
+            setCreatingOn(null)
+            setEditing(null)
+          }}
+          onSaved={async () => {
+            setCreatingOn(null)
+            setEditing(null)
+            await load()
+          }}
+        />
+      )}
     </div>
   )
 }

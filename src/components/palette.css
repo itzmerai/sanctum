@@ -1,0 +1,109 @@
+.palette__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: var(--scrim);
+  backdrop-filter: blur(2px);
+  display: flex;
+  justify-content: center;
+  padding-top: 12vh;
+}
+
+.palette {
+  width: min(560px, calc(100vw - var(--sp-8)));
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-modal);
+  box-shadow: var(--shadow-modal);
+  overflow: hidden;
+}
+
+.palette__field {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-faint);
+}
+
+.palette__input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: none;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-item);
+}
+.palette__input::placeholder {
+  color: var(--text-faint);
+}
+
+.palette__field kbd {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--bg-input);
+  color: var(--text-muted);
+}
+
+.palette__results {
+  list-style: none;
+  margin: 0;
+  padding: var(--sp-1);
+  overflow-y: auto;
+}
+
+.palette__empty {
+  padding: var(--sp-5);
+  text-align: center;
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  color: var(--text-faint);
+}
+
+.palette__hit {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  padding: var(--sp-2) var(--sp-3);
+  border: none;
+  border-radius: var(--r-btn);
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text);
+}
+.palette__hit[data-active='true'] {
+  background: var(--bg-active);
+}
+
+.palette__hitText {
+  min-width: 0;
+  flex: 1;
+}
+
+.palette__hitTitle {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--fs-item);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.palette__hitSub {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -10,6 +10,8 @@
 import { useEffect, useState } from 'react'
 
 import { Wordmark } from '../../components/Brand'
+import { Icon } from '../../components/Icon'
+import { WindowControls } from '../../components/WindowControls'
 import { CommandError, setup, type StrengthReport } from '../../lib/ipc'
 import './lock.css'
 
@@ -89,6 +91,7 @@ export function SetupScreen({ onComplete }: Props) {
     <div className="lock" data-tauri-drag-region>
       <header className="lock__chrome" data-tauri-drag-region>
         <Wordmark size={18} />
+        <WindowControls maximizable={false} />
       </header>
 
       <main className="lock__body">
@@ -125,7 +128,7 @@ export function SetupScreen({ onComplete }: Props) {
                   aria-label={reveal ? 'Hide password' : 'Show password'}
                   tabIndex={-1}
                 >
-                  {reveal ? '●' : '○'}
+                  <Icon name="eye" size={15} />
                 </button>
               </div>
 

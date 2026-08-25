@@ -558,3 +558,48 @@
   font-size: var(--fs-meta);
   vertical-align: middle;
 }
+
+/* --- folder contents, shown in place (U18) --------------------------------- */
+
+.foldc__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.foldc__back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  align-self: flex-start;
+  padding: var(--sp-1) var(--sp-2);
+  border: none;
+  border-radius: var(--r-btn);
+  background: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+}
+.foldc__back:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+/* The chevron points down by default; rotate it to point back. */
+.foldc__backIcon {
+  transform: rotate(90deg);
+}
+
+.foldc__title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.notepeek__body {
+  max-height: 320px;
+  overflow-y: auto;
+  font-family: var(--font-sans);
+  line-height: 1.7;
+}

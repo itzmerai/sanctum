@@ -20,12 +20,14 @@ use super::{with_dek, AppState, CommandError, CommandResult};
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CredentialDto {
+    #[serde(with = "crate::commands::ids::as_string")]
     pub id: i64,
     pub name: String,
     pub username: String,
     pub website: String,
     pub notes: String,
     pub tags: Vec<String>,
+    #[serde(with = "crate::commands::ids::as_string_opt")]
     pub folder_id: Option<i64>,
     pub favorite: bool,
     pub created_at: i64,
@@ -74,6 +76,7 @@ pub struct CredentialInput {
     pub website: String,
     pub notes: String,
     pub tags: Vec<String>,
+    #[serde(with = "crate::commands::ids::as_string_opt")]
     pub folder_id: Option<i64>,
 }
 
@@ -125,8 +128,9 @@ pub fn list_credentials(state: tauri::State<'_, AppState>) -> CommandResult<Vec<
 #[tauri::command]
 pub fn get_credential(
     state: tauri::State<'_, AppState>,
-    id: i64,
+    id: String,
 ) -> CommandResult<Option<CredentialDto>> {
+    let id = crate::commands::ids::parse_id(&id)?;
     with_dek(&state, |vault, dek| {
         let favorite = vault.is_favorite("credential", id)?;
         Ok(vault
@@ -140,7 +144,8 @@ pub fn get_credential(
 /// The only command that does. Kept separate so it is trivially auditable and
 /// so U19's activity log can record reveals distinctly from reads.
 #[tauri::command]
-pub fn reveal_password(state: tauri::State<'_, AppState>, id: i64) -> CommandResult<String> {
+pub fn reveal_password(state: tauri::State<'_, AppState>, id: String) -> CommandResult<String> {
+    let id = crate::commands::ids::parse_id(&id)?;
     with_dek(&state, |vault, dek| {
         vault
             .get_credential(dek, id)?
@@ -153,18 +158,20 @@ pub fn reveal_password(state: tauri::State<'_, AppState>, id: i64) -> CommandRes
 pub fn create_credential(
     state: tauri::State<'_, AppState>,
     input: CredentialInput,
-) -> CommandResult<i64> {
+) -> CommandResult<String> {
     input.validate()?;
     let record = input.into_record();
-    with_dek(&state, |vault, dek| vault.insert_credential(dek, &record))
+    // Returned as a string for the same reason it is sent as one.
+    Ok(with_dek(&state, |vault, dek| vault.insert_credential(dek, &record))?.to_string())
 }
 
 #[tauri::command]
 pub fn update_credential(
     state: tauri::State<'_, AppState>,
-    id: i64,
+    id: String,
     input: CredentialInput,
 ) -> CommandResult<()> {
+    let id = crate::commands::ids::parse_id(&id)?;
     input.validate()?;
     let record = input.into_record();
     with_dek(&state, |vault, dek| {
@@ -173,7 +180,8 @@ pub fn update_credential(
 }
 
 #[tauri::command]
-pub fn delete_credential(state: tauri::State<'_, AppState>, id: i64) -> CommandResult<()> {
+pub fn delete_credential(state: tauri::State<'_, AppState>, id: String) -> CommandResult<()> {
+    let id = crate::commands::ids::parse_id(&id)?;
     // Deleting does not need the key, but it does need the vault unlocked --
     // otherwise a locked window could still destroy data.
     with_dek(&state, |vault, _dek| vault.delete_credential(id))
@@ -183,9 +191,10 @@ pub fn delete_credential(state: tauri::State<'_, AppState>, id: i64) -> CommandR
 pub fn set_favorite(
     state: tauri::State<'_, AppState>,
     entity_type: String,
-    id: i64,
+    id: String,
     favorite: bool,
 ) -> CommandResult<()> {
+    let id = crate::commands::ids::parse_id(&id)?;
     with_dek(&state, |vault, _dek| {
         vault.set_favorite(&entity_type, id, favorite)
     })

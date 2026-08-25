@@ -88,7 +88,7 @@ export function TasksPage() {
     await load()
   }
 
-  async function remove(id: number) {
+  async function remove(id: string) {
     await tasks.remove(id)
     setDetail(null)
     await load()

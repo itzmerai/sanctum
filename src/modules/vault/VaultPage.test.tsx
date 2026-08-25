@@ -49,7 +49,9 @@ vi.mock('../../lib/ipc', async () => {
 
 function credential(over: Partial<Credential> = {}): Credential {
   return {
-    id: 1,
+    // Ids are strings, and deliberately past 2^53 so a regression to numbers
+    // would corrupt them exactly as it did in the real app.
+    id: '5744466908857731456',
     name: 'Vercel Deployment Team',
     username: 'deployer@vercel.com',
     website: 'https://vercel.com',
@@ -75,13 +77,13 @@ beforeEach(() => {
   vi.clearAllMocks()
   listCredentials.mockResolvedValue([
     credential(),
-    credential({ id: 2, name: 'Stripe Developer Dashboard', username: 'billing@codeforge.io', tags: ['stripe', 'payments'], favorite: true }),
-    credential({ id: 3, name: 'AWS Production Console', username: 'dev-admin@codeforge.io', tags: ['cloud'] }),
+    credential({ id: '2262211442473880730', name: 'Stripe Developer Dashboard', username: 'billing@codeforge.io', tags: ['stripe', 'payments'], favorite: true }),
+    credential({ id: '6723687344089885874', name: 'AWS Production Console', username: 'dev-admin@codeforge.io', tags: ['cloud'] }),
   ])
   revealPassword.mockResolvedValue('Vc_live_88xP9vL3mK0')
   passwordStrength.mockResolvedValue({ score: 4, acceptable: true, reason: null, length: 20 })
   generatePassword.mockResolvedValue('G3n#rated-P4ssw0rd!x')
-  listFolders.mockResolvedValue([{ id: 10, kind: 'passwords', name: 'Client Projects', color: '#e8734a', itemCount: 1, favorite: false, createdAt: 0 }])
+  listFolders.mockResolvedValue([{ id: '10', kind: 'passwords', name: 'Client Projects', color: '#e8734a', itemCount: 1, favorite: false, createdAt: 0 }])
   copyPassword.mockResolvedValue({ sequence: 1, exclusion: 'excluded' })
 })
 
@@ -118,7 +120,7 @@ describe('vault list and grid (U9: R19, R20)', () => {
     await user.click(screen.getAllByLabelText('Show password')[0]!)
     expect(await screen.findByText('Vc_live_88xP9vL3mK0')).toBeInTheDocument()
     expect(revealPassword).toHaveBeenCalledTimes(1)
-    expect(revealPassword).toHaveBeenCalledWith(1)
+    expect(revealPassword).toHaveBeenCalledWith('5744466908857731456')
   })
 
   it('hides a revealed password again', async () => {
@@ -195,7 +197,7 @@ describe('vault list and grid (U9: R19, R20)', () => {
     await screen.findByText('Vercel Deployment Team')
 
     await user.click(screen.getAllByLabelText('Copy password')[0]!)
-    expect(copyPassword).toHaveBeenCalledWith(1)
+    expect(copyPassword).toHaveBeenCalledWith('5744466908857731456')
     expect(await screen.findByText(/Clears in 30 seconds/)).toBeInTheDocument()
   })
 
@@ -216,7 +218,7 @@ describe('vault list and grid (U9: R19, R20)', () => {
     await screen.findByText('Vercel Deployment Team')
 
     await user.click(screen.getAllByLabelText('Add to favorites')[0]!)
-    expect(setFavorite).toHaveBeenCalledWith('credential', 1, true)
+    expect(setFavorite).toHaveBeenCalledWith('credential', '5744466908857731456', true)
   })
 
   it('requires two clicks to delete', async () => {
@@ -229,7 +231,7 @@ describe('vault list and grid (U9: R19, R20)', () => {
     expect(deleteCredential).not.toHaveBeenCalled()
 
     await user.click(screen.getByRole('menuitem', { name: /Click again to delete/ }))
-    expect(deleteCredential).toHaveBeenCalledWith(1)
+    expect(deleteCredential).toHaveBeenCalledWith('5744466908857731456')
   })
 })
 
@@ -374,7 +376,7 @@ describe('credential form (U10: R22, R23, AE6)', () => {
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => expect(updateCredential).toHaveBeenCalled())
-    expect(revealPassword).toHaveBeenCalledWith(1)
+    expect(revealPassword).toHaveBeenCalledWith('5744466908857731456')
     expect(updateCredential.mock.calls[0]![1]).toMatchObject({
       name: 'Renamed',
       password: 'Vc_live_88xP9vL3mK0',

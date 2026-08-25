@@ -9,7 +9,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 
 import { Icon } from '../../components/Icon'
-import { formatDay, formatMoney, isOverdue, monthBounds } from '../../lib/format'
+import { lastBackupAt } from '../../lib/backupRecord'
+import { formatDay, formatMoney, formatRelative, isOverdue, monthBounds } from '../../lib/format'
 import {
   CommandError,
   clipboard,
@@ -39,6 +40,7 @@ export function DashboardPage() {
   const [recent, setRecent] = useState<Credential[]>([])
   const [autoLockMinutes, setAutoLockMinutes] = useState<number | null>(null)
   const [recoveryReady, setRecoveryReady] = useState(false)
+  const [backupAt, setBackupAt] = useState<number | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -62,6 +64,7 @@ export function DashboardPage() {
         setRecent(credentialList.slice(0, 3))
         setAutoLockMinutes(status.autoLockMinutes)
         setRecoveryReady(status.recoveryAcknowledged)
+        setBackupAt(lastBackupAt())
         setError(null)
       } catch (raw) {
         if (!(raw instanceof CommandError && raw.kind === 'locked')) {
@@ -80,7 +83,14 @@ export function DashboardPage() {
 
   const checks = useMemo(() => {
     const list = [
-      { label: 'Backup', ready: false, detail: 'No backup taken yet' },
+      {
+        label: 'Backup',
+        ready: backupAt !== null,
+        detail:
+          backupAt === null
+            ? 'No backup taken yet'
+            : `Backed up ${formatRelative(backupAt)}`,
+      },
       {
         label: 'Auto-lock',
         ready: autoLockMinutes !== null,
@@ -93,11 +103,11 @@ export function DashboardPage() {
       },
     ]
     return list
-  }, [autoLockMinutes, recoveryReady])
+  }, [autoLockMinutes, recoveryReady, backupAt])
 
   const readyCount = checks.filter((check) => check.ready).length
 
-  async function copyPassword(id: number) {
+  async function copyPassword(id: string) {
     try {
       const receipt = await clipboard.copyPassword(id)
       setToast(
