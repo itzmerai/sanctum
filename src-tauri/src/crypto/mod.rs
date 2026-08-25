@@ -17,13 +17,22 @@
 mod aead;
 mod kdf;
 mod kekdek;
+mod recovery;
 mod secrets;
+pub mod strength;
 
-pub use aead::{decrypt_record, encrypt_record, RecordAad, NONCE_LEN};
+pub use aead::{
+    decrypt_record, decrypt_record_with_aad, encrypt_record, encrypt_record_with_aad, RecordAad,
+    NONCE_LEN,
+};
 pub use kdf::{
     calibrate, calibrate_to, derive_kek, generate_salt, KdfParams, SALT_LEN, TARGET_UNLOCK,
 };
 pub use kekdek::{unwrap_dek, wrap_dek, WrapPurpose, WrappedKey};
+pub use recovery::{
+    derive_recovery_kek, format_for_display, generate_recovery_code, normalize_recovery_code,
+    RecoveryCode, CODE_LEN, CODE_PREFIX,
+};
 pub use secrets::{SecretBytes, SymmetricKey, KEY_LEN};
 
 /// Crypto format identifier bound into every record's AAD (KTD12).
@@ -64,5 +73,7 @@ pub(crate) fn fill_random(dest: &mut [u8]) -> Result<()> {
     getrandom::fill(dest).map_err(|e| CryptoError::Rng(e.to_string()))
 }
 
+#[cfg(test)]
+mod recovery_tests;
 #[cfg(test)]
 mod tests;

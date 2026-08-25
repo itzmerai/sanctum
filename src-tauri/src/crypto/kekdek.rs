@@ -34,6 +34,9 @@ pub enum WrapPurpose {
     MasterPassword,
     /// Wrapped under the recovery-code KEK (KTD14).
     RecoveryCode,
+    /// Wrapped under a backup file password (KTD20). A distinct context, so a
+    /// blob lifted from a vault header cannot be pasted into a backup.
+    Backup,
 }
 
 impl WrapPurpose {
@@ -41,6 +44,7 @@ impl WrapPurpose {
         match self {
             Self::MasterPassword => b"sanctum.dek.master",
             Self::RecoveryCode => b"sanctum.dek.recovery",
+            Self::Backup => b"sanctum.dek.backup",
         }
     }
 }

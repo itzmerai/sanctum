@@ -117,6 +117,55 @@ pub fn decrypt_record(key: &SymmetricKey, aad: &RecordAad<'_>, blob: &[u8]) -> R
         .map_err(|_| CryptoError::Decrypt)
 }
 
+/// Encrypts with caller-supplied AAD bytes.
+///
+/// For contexts that are not a table row -- the backup container binds its own
+/// header here (KTD20) rather than a (row, column) pair.
+pub fn encrypt_record_with_aad(
+    key: &SymmetricKey,
+    aad: &[u8],
+    plaintext: &[u8],
+) -> Result<Vec<u8>> {
+    let mut nonce_bytes = [0u8; NONCE_LEN];
+    fill_random(&mut nonce_bytes)?;
+
+    let ciphertext = cipher(key)
+        .encrypt(
+            Nonce::from_slice(&nonce_bytes),
+            Payload {
+                msg: plaintext,
+                aad,
+            },
+        )
+        .map_err(|_| CryptoError::Decrypt)?;
+
+    let mut blob = Vec::with_capacity(NONCE_LEN + ciphertext.len());
+    blob.extend_from_slice(&nonce_bytes);
+    blob.extend_from_slice(&ciphertext);
+    Ok(blob)
+}
+
+/// Decrypts a blob sealed by `encrypt_record_with_aad`.
+pub fn decrypt_record_with_aad(key: &SymmetricKey, aad: &[u8], blob: &[u8]) -> Result<Vec<u8>> {
+    let minimum = NONCE_LEN + TAG_LEN;
+    if blob.len() < minimum {
+        return Err(CryptoError::MalformedCiphertext {
+            expected: minimum,
+            actual: blob.len(),
+        });
+    }
+    let (nonce_bytes, ciphertext) = blob.split_at(NONCE_LEN);
+    cipher(key)
+        .decrypt(
+            Nonce::from_slice(nonce_bytes),
+            Payload {
+                msg: ciphertext,
+                aad,
+            },
+        )
+        .map_err(|_| CryptoError::Decrypt)
+}
+
 /// Extracts the nonce from a stored blob. Test and audit helper only.
 #[cfg(test)]
 pub(crate) fn nonce_of(blob: &[u8]) -> &[u8] {

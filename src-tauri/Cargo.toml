@@ -34,6 +34,27 @@ getrandom = "0.3"
 zeroize = { version = "1", features = ["derive"] }
 subtle = "2"
 
+# --- vault store (U3) --------------------------------------------------------
+# Bundled SQLite so the shipped binary does not depend on a system library.
+rusqlite = { version = "0.38", features = ["bundled"] }
+
+# --- session, recovery, strength (U4) ----------------------------------------
+# HKDF is the fast KDF for the recovery code (KTD14): brute force is not the
+# threat model at 150 bits of CSPRNG entropy, so Argon2 would only add latency.
+hkdf = "0.12"
+sha2 = "0.10"
+zxcvbn = "3"
+
+# --- clipboard (U7) ----------------------------------------------------------
+# Raw FFI rather than the  wrapper crate: this needs six functions,
+# and windows-sys changes its surface far less often.
+[target."cfg(windows)".dependencies]
+windows-sys = { version = "0.59", features = [
+    "Win32_Foundation",
+    "Win32_System_DataExchange",
+    "Win32_System_Memory",
+] }
+
 [features]
 # Enabled by `tauri dev`; keeps devtools out of release bundles.
 default = []
@@ -44,3 +65,6 @@ lto = true
 opt-level = "s"
 panic = "abort"
 strip = true
+
+[dev-dependencies]
+tempfile = "3"
