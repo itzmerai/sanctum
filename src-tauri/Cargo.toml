@@ -38,6 +38,16 @@ subtle = "2"
 # Bundled SQLite so the shipped binary does not depend on a system library.
 rusqlite = { version = "0.38", features = ["bundled"] }
 
+# Native save/open dialogs for backup and CSV, and relaunch after a reset.
+tauri-plugin-dialog = "2"
+tauri-plugin-process = "2"
+
+# --- website icons (U12) -----------------------------------------------------
+# The only outbound request the app can make, and it is off by default.
+# rustls rather than the platform TLS stack, so the trust decision is the same
+# on every Windows image.
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
+
 # --- session, recovery, strength (U4) ----------------------------------------
 # HKDF is the fast KDF for the recovery code (KTD14): brute force is not the
 # threat model at 150 bits of CSPRNG entropy, so Argon2 would only add latency.

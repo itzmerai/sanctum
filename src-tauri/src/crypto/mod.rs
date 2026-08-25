@@ -15,6 +15,7 @@
 //! and directly unit-testable.
 
 mod aead;
+pub mod generator;
 mod kdf;
 mod kekdek;
 mod recovery;

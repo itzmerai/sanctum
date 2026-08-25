@@ -13,10 +13,16 @@
 pub mod clipboard_cmds;
 pub mod credentials;
 pub mod data;
+pub mod entities;
+pub mod favicon;
+pub mod folders;
+pub mod rotate_cmds;
 pub mod session_cmds;
 pub mod setup;
+pub mod windows;
 
 use std::path::PathBuf;
+use std::sync::atomic::AtomicBool;
 use std::sync::Mutex;
 use std::time::Instant;
 
@@ -31,6 +37,9 @@ pub struct AppState {
     pub vault: Mutex<Vault>,
     pub session: Mutex<Session>,
     pub vault_path: PathBuf,
+    /// Website icons (R24). Starts **false** on every launch, so a fresh
+    /// install makes no outbound request before the user opts in (AE12).
+    pub website_icons: AtomicBool,
 }
 
 impl AppState {
@@ -39,6 +48,7 @@ impl AppState {
             vault: Mutex::new(vault),
             session: Mutex::new(Session::new()),
             vault_path,
+            website_icons: AtomicBool::new(false),
         }
     }
 }

@@ -11,26 +11,37 @@
 //! *metadata* is visible to anyone holding the file. SQLCipher remains the
 //! documented fallback if hiding that ever becomes a requirement.
 
+mod activity;
 mod folders;
 mod header;
+mod income;
 mod lifecycle;
 mod migrations;
+mod notes;
 mod rotate;
 mod schema;
 mod store;
+mod tasks;
 
+pub use activity::{ActivityEntry, ACTION_CREATED, ACTION_DELETED, ACTION_UPDATED};
 pub use folders::{Folder, KIND_NOTES, KIND_PASSWORDS};
 pub use header::VaultHeader;
+pub use income::{Income, NewIncome};
 pub use lifecycle::{
     acknowledge_recovery_code, create_vault, is_initialized, recovery_acknowledged,
     unlock_with_password, unlock_with_recovery, verify_recovery_code, SetupOutcome,
 };
+pub use notes::{NewNote, Note};
 pub use rotate::{
     change_master_password, reset_master_password_with_recovery, rotate_recovery_code,
     RotationOutcome, RotationPhase,
 };
 pub use schema::latest_version as latest_schema_version;
 pub use store::{Credential, CredentialMeta, NewCredential, Vault};
+pub use tasks::{
+    NewTask, Task, PRIORITY_HIGH, PRIORITY_LOW, PRIORITY_MEDIUM, STATUS_COMPLETED,
+    STATUS_IN_PROGRESS, STATUS_TODO,
+};
 
 /// Errors surfaced by the vault store.
 #[derive(Debug, thiserror::Error)]
@@ -74,6 +85,8 @@ pub enum VaultError {
 
 pub type Result<T> = std::result::Result<T, VaultError>;
 
+#[cfg(test)]
+mod entity_tests;
 #[cfg(test)]
 mod lifecycle_tests;
 #[cfg(test)]

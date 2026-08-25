@@ -1,14 +1,19 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "main-capability",
-  "description": "Broader surface for the unlocked application window (KTD18). Plugin permissions are added by the unit that needs them -- dialog+fs for backup/CSV (U6), clipboard-manager for copy (U7), store for non-secret settings (U8/U21) -- so this file stays an auditable record of what the app can reach.",
+  "description": "Broader surface for the unlocked application window (KTD18). Plugin permissions are added by the unit that needs them: dialog for backup/CSV file pickers (U6), process for relaunch after Reset Vault (U6). Window show/hide is deliberately absent -- Rust drives those transitions (commands::windows), so a compromised WebView cannot reveal the app window on its own.",
   "local": true,
-  "windows": ["main"],
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "core:default",
     "core:window:allow-start-dragging",
     "core:window:allow-minimize",
     "core:window:allow-toggle-maximize",
-    "core:window:allow-close"
+    "core:window:allow-close",
+    "dialog:allow-save",
+    "dialog:allow-open",
+    "process:allow-restart"
   ]
 }

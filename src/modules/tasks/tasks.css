@@ -1,0 +1,3 @@
+/* Shared module styling lives in ../modules.css -- imported once here so
+   each module keeps its own import line. */
+@import '../modules.css';

@@ -1,8 +1,16 @@
+// Stylesheets first, and before any module that pulls in a component
+// stylesheet. ES imports are hoisted in source order, so a component's CSS
+// would otherwise load ahead of the tokens it overrides -- and since class
+// selectors like `.input` and `.lock__input` share a specificity, source order
+// is what decides the winner.
+import './theme/tokens.css'
+import './styles/global.css'
+
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { getCurrentWindow } from '@tauri-apps/api/window'
+
 import { Router } from './router'
-import './styles/global.css'
 
 /**
  * Two windows share this bundle (KTD18): `unlock` runs under a locked-down

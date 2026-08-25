@@ -64,8 +64,15 @@ pub async fn setup_vault(
 /// finished until it does, so a user who closes the window mid-setup is
 /// prompted again rather than left with an unacknowledged code.
 #[tauri::command]
-pub fn acknowledge_recovery_code(state: tauri::State<'_, AppState>) -> CommandResult<()> {
-    super::with_vault(&state, vault::acknowledge_recovery_code)
+pub fn acknowledge_recovery_code(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, AppState>,
+) -> CommandResult<()> {
+    super::with_vault(&state, vault::acknowledge_recovery_code)?;
+    // Setup is finished and the vault is already unlocked, so this is the
+    // moment the app window appears.
+    super::windows::reveal_app(&app);
+    Ok(())
 }
 
 /// Checks a recovery code without unlocking anything (U5's verify path).

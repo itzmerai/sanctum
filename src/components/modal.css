@@ -1,0 +1,129 @@
+.modal__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--scrim);
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  padding: var(--sp-6);
+}
+
+.modal {
+  width: 100%;
+  max-height: calc(100vh - var(--sp-8) * 2);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-modal);
+  box-shadow: var(--shadow-modal);
+  overflow: hidden;
+}
+
+.modal__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-5) var(--sp-5) var(--sp-3);
+}
+
+.modal__title {
+  font-family: var(--font-mono);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.modal__close {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.modal__close:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.modal__body {
+  padding: 0 var(--sp-5) var(--sp-5);
+  overflow-y: auto;
+}
+
+.modal__foot {
+  display: flex;
+  gap: var(--sp-2);
+  padding: var(--sp-4) var(--sp-5);
+  border-top: 1px solid var(--border);
+}
+.modal__foot > * {
+  flex: 1;
+}
+
+/* --- field grid used inside detail and form modals ------------------------ */
+
+.field {
+  margin-bottom: var(--sp-4);
+}
+.field:last-child {
+  margin-bottom: 0;
+}
+
+.field__label {
+  display: block;
+  margin-bottom: var(--sp-2);
+}
+
+.field__value {
+  font-family: var(--font-mono);
+  font-size: var(--fs-item);
+  word-break: break-word;
+}
+
+.field__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-4);
+}
+
+.field__box {
+  background: var(--bg-input);
+  border-radius: var(--r-input);
+  padding: var(--sp-3);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+textarea.input {
+  height: auto;
+  min-height: 84px;
+  padding: var(--sp-3);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  resize: vertical;
+}
+
+select.input {
+  cursor: pointer;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 15px) calc(50% + 1px),
+    calc(100% - 10px) calc(50% + 1px);
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: var(--sp-8);
+}

@@ -38,6 +38,12 @@ const AUTO_LOCK_TICK: Duration = Duration::from_secs(15);
 /// Event emitted when the vault locks itself, so the shell can clear state.
 pub const EVENT_VAULT_LOCKED: &str = "sanctum://vault-locked";
 
+/// Emitted when the vault becomes unlocked.
+///
+/// The main window mounts while the vault is still locked and stays alive,
+/// hidden, across lock/unlock cycles -- so it needs telling, not asking.
+pub const EVENT_VAULT_UNLOCKED: &str = "sanctum://vault-unlocked";
+
 /// Emitted after a scheduled clipboard clear runs.
 pub const EVENT_CLIPBOARD_CLEARED: &str = "sanctum://clipboard-cleared";
 
@@ -56,6 +62,8 @@ fn vault_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_process::init())
         .setup(|app| {
             let handle = app.handle().clone();
             let path = vault_path(&handle)?;
@@ -83,6 +91,7 @@ pub fn run() {
                 if session.enforce_idle_timeout(std::time::Instant::now()) {
                     drop(session);
                     let _ = ticker.emit(EVENT_VAULT_LOCKED, ());
+                    commands::windows::reveal_lock(&ticker);
                 }
             });
 
@@ -117,6 +126,38 @@ pub fn run() {
             commands::clipboard_cmds::copy_text,
             commands::clipboard_cmds::clear_clipboard,
             commands::clipboard_cmds::clipboard_clear_seconds,
+            // folders + generator (U10/U11/U18)
+            commands::folders::list_folders,
+            commands::folders::create_folder,
+            commands::folders::update_folder,
+            commands::folders::delete_folder,
+            commands::folders::generate_password,
+            // notes / tasks / income / activity (U13-U20)
+            commands::entities::list_notes,
+            commands::entities::create_note,
+            commands::entities::update_note,
+            commands::entities::delete_note,
+            commands::entities::duplicate_note,
+            commands::entities::list_tasks,
+            commands::entities::create_task,
+            commands::entities::update_task,
+            commands::entities::set_task_status,
+            commands::entities::delete_task,
+            commands::entities::list_income,
+            commands::entities::create_income,
+            commands::entities::update_income,
+            commands::entities::delete_income,
+            commands::entities::list_activity,
+            commands::entities::clear_activity,
+            commands::entities::vault_summary,
+            // rotation (U5/U21)
+            commands::rotate_cmds::change_master_password,
+            commands::rotate_cmds::rotate_recovery_code,
+            commands::rotate_cmds::reset_password_with_recovery,
+            // website icons (U12)
+            commands::favicon::fetch_favicon,
+            commands::favicon::set_website_icons,
+            commands::favicon::website_icons_enabled,
             // data (U6/U21)
             commands::data::export_backup,
             commands::data::inspect_backup,

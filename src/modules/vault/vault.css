@@ -1,0 +1,426 @@
+/* Vault screen (U9/U10). */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  background: var(--bg-input);
+  border-radius: var(--r-btn);
+}
+
+.segmented__item {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.segmented__item[data-on='true'] {
+  background: var(--bg-surface);
+  color: var(--text);
+  box-shadow: var(--shadow-card);
+}
+
+.toolbar__search {
+  flex: 1;
+  max-width: 420px;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: var(--control-h);
+  padding: 0 var(--sp-3);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-input);
+  color: var(--text-faint);
+}
+.toolbar__search:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.toolbar__input {
+  flex: 1;
+  border: none;
+  background: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-item);
+}
+.toolbar__input::placeholder {
+  color: var(--text-faint);
+}
+
+.toolbar__tags {
+  width: 150px;
+  flex-shrink: 0;
+}
+
+.toolbar__add {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: var(--r-btn);
+  background: var(--accent);
+  color: var(--text-oncolor);
+  cursor: pointer;
+}
+.toolbar__add:hover {
+  background: var(--accent-hover);
+}
+
+/* --- shared row/card bits ------------------------------------------------- */
+
+.entityicon {
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-icon);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.iconbtn {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.iconbtn:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+.iconbtn[data-on='true'] {
+  color: var(--accent);
+}
+.iconbtn--boxed {
+  width: var(--control-h);
+  height: var(--control-h);
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+}
+
+.row__name {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--fs-item);
+  font-weight: 500;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row__sub {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row__note {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  color: var(--text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- list view ------------------------------------------------------------ */
+
+.vault__list {
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--border);
+}
+.row:last-child {
+  border-bottom: none;
+}
+.row:hover {
+  background: var(--bg-hover);
+}
+
+.row__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+}
+
+.row__text {
+  min-width: 0;
+  flex: 1;
+}
+
+.row__secret {
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--text-faint);
+  letter-spacing: 0.06em;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.row__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+/* --- grid view ------------------------------------------------------------ */
+
+.vault__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--sp-4);
+}
+
+.ccard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow var(--dur-fast) var(--ease);
+}
+.ccard:hover,
+.ccard:focus-within {
+  box-shadow: var(--shadow-raised);
+}
+
+.ccard__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.ccard__tags {
+  display: flex;
+  gap: var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  color: var(--text-faint);
+}
+
+.ccard__main {
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  min-width: 0;
+}
+
+.ccard__secret {
+  margin: 0;
+  padding: var(--sp-2);
+  border-radius: var(--r-input);
+  background: var(--bg-input);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  word-break: break-all;
+}
+
+.ccard__actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+.ccard:hover .ccard__actions,
+.ccard:focus-within .ccard__actions {
+  opacity: 1;
+}
+/* Pointer-less input never triggers hover, so keep actions visible there. */
+@media (hover: none) {
+  .ccard__actions {
+    opacity: 1;
+  }
+}
+
+/* --- overflow menu -------------------------------------------------------- */
+
+.rowmenu {
+  position: relative;
+}
+
+.rowmenu__panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 20;
+  min-width: 190px;
+  padding: var(--sp-1);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-btn);
+  box-shadow: var(--shadow-modal);
+}
+
+.rowmenu__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  height: 32px;
+  padding: 0 var(--sp-2);
+  border: none;
+  background: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-item);
+  text-align: left;
+}
+.rowmenu__item:hover {
+  background: var(--bg-hover);
+}
+.rowmenu__item--danger {
+  color: var(--danger);
+}
+
+/* --- detail --------------------------------------------------------------- */
+
+.detail__identity {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--text-muted);
+}
+
+.detail__password {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.detail__password span {
+  word-break: break-all;
+}
+
+/* --- form ----------------------------------------------------------------- */
+
+.inputgroup {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+.inputgroup .input {
+  flex: 1;
+}
+
+.meter {
+  height: 4px;
+  margin-top: var(--sp-2);
+  border-radius: var(--r-pill);
+  background: var(--bg-input);
+  overflow: hidden;
+}
+.meter span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width var(--dur) var(--ease);
+}
+
+.meter__label {
+  margin: var(--sp-1) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  color: var(--text-muted);
+}
+
+.form__folderRow {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--sp-3);
+}
+
+.form__hint {
+  margin: var(--sp-2) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  color: var(--text-muted);
+}
+.form__hint[data-error='true'] {
+  color: var(--danger);
+}
+
+/* --- misc ----------------------------------------------------------------- */
+
+.vault__error {
+  margin: 0 0 var(--sp-4);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  color: var(--danger);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--sp-6);
+  transform: translateX(-50%);
+  z-index: 200;
+  max-width: 420px;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-btn);
+  background: var(--bg-titlebar);
+  color: #ededea;
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  box-shadow: var(--shadow-modal);
+  text-align: center;
+}

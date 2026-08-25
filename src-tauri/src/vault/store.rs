@@ -380,9 +380,15 @@ pub(super) fn new_row_id() -> Result<i64> {
     Ok(i64::from_le_bytes(bytes) & i64::MAX)
 }
 
+/// Unix time in **milliseconds**.
+///
+/// Milliseconds rather than seconds for two reasons: two edits inside one
+/// second must still order correctly (row ids are random and cannot break the
+/// tie), and JavaScript measures time this way, so no IPC boundary has to
+/// convert.
 pub(super) fn now_unix() -> i64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs() as i64)
+        .map(|d| d.as_millis() as i64)
         .unwrap_or(0)
 }

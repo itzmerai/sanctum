@@ -1,0 +1,235 @@
+/* Lock and setup window (U4). The unlock window is always dark, matching the
+ * reference: it is the app's front door and reads as one regardless of the
+ * theme chosen for the interior. */
+
+.lock {
+  --lock-bg: #0d0d0f;
+  --lock-surface: #151517;
+  --lock-border: #26262a;
+  --lock-text: #ededea;
+  --lock-muted: #85857e;
+  --lock-faint: #5d5d57;
+
+  height: 100vh;
+  display: grid;
+  grid-template-rows: var(--titlebar-h) 1fr auto;
+  background: var(--lock-bg);
+  color: var(--lock-text);
+  font-family: var(--font-mono);
+  overflow: hidden;
+}
+
+.lock__chrome {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--sp-4);
+  color: var(--lock-text);
+  -webkit-app-region: drag;
+}
+
+.lock__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--sp-8);
+  text-align: center;
+}
+
+.lock__mark {
+  color: var(--lock-text);
+  margin-bottom: var(--sp-6);
+}
+
+.lock__tagline {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin: 0 0 var(--sp-3);
+  letter-spacing: -0.01em;
+}
+
+.lock__sub {
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--lock-muted);
+  margin: 0 0 var(--sp-8);
+  max-width: 34ch;
+}
+
+.lock__form {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.lock__field {
+  position: relative;
+}
+
+.lock__input {
+  background: var(--lock-surface);
+  border-color: var(--lock-border);
+  color: var(--lock-text);
+  padding-right: 40px;
+  text-align: center;
+}
+.lock__input::placeholder {
+  color: var(--lock-faint);
+}
+.lock__input:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgb(255 255 255 / 0.06);
+}
+
+.lock__reveal {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: none;
+  color: var(--lock-faint);
+  cursor: pointer;
+  font-size: 0.7rem;
+  border-radius: 6px;
+}
+.lock__reveal:hover {
+  color: var(--lock-text);
+}
+
+.lock__submit {
+  width: 100%;
+}
+
+.lock__error {
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  color: #e8798a;
+  margin: 0;
+  min-height: 1.2em;
+  white-space: pre-wrap;
+}
+
+.lock__link {
+  background: none;
+  border: none;
+  color: var(--lock-muted);
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: var(--sp-1);
+}
+.lock__link:hover {
+  color: var(--lock-text);
+}
+
+.lock__badge {
+  margin-top: var(--sp-8);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  color: var(--lock-faint);
+}
+
+.lock__footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--sp-4) var(--sp-4) var(--sp-5);
+  border-top: 1px solid var(--lock-border);
+  font-size: 0.5625rem;
+  letter-spacing: 0.08em;
+  color: var(--lock-faint);
+  text-align: center;
+}
+
+/* --- setup ---------------------------------------------------------------- */
+
+.setup__steps {
+  display: flex;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-6);
+}
+.setup__step {
+  width: 28px;
+  height: 3px;
+  border-radius: var(--r-pill);
+  background: var(--lock-border);
+}
+.setup__step[data-on='true'] {
+  background: var(--accent);
+}
+
+.setup__meter {
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: var(--lock-border);
+  overflow: hidden;
+}
+.setup__meter span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width var(--dur) var(--ease);
+}
+
+.setup__meterRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  font-size: var(--fs-meta);
+  color: var(--lock-muted);
+  font-family: var(--font-sans);
+}
+
+.setup__hint {
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  color: var(--lock-muted);
+  margin: 0;
+  text-align: left;
+  min-height: 2.4em;
+}
+
+/* --- recovery code -------------------------------------------------------- */
+
+.recovery__code {
+  font-family: var(--font-mono);
+  font-size: 0.9375rem;
+  letter-spacing: 0.04em;
+  line-height: 1.9;
+  background: var(--lock-surface);
+  border: 1px solid var(--lock-border);
+  border-radius: var(--r-card);
+  padding: var(--sp-4);
+  word-break: break-all;
+  user-select: text;
+}
+
+.recovery__warning {
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  line-height: 1.6;
+  color: var(--lock-muted);
+  text-align: left;
+  margin: 0;
+}
+.recovery__warning strong {
+  color: #e8c07a;
+  font-weight: 600;
+}
+
+.recovery__confirm {
+  text-align: left;
+}

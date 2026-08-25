@@ -1,0 +1,239 @@
+@import '../modules.css';
+@import '../modules-b.css';
+
+.cal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+  gap: var(--sp-5);
+  align-items: start;
+}
+
+.cal__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+
+.cal__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.cal__search {
+  max-width: 180px;
+}
+
+.cal__views {
+  padding: 2px;
+}
+
+.cal__view {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+}
+.cal__view[data-on='true'] {
+  background: var(--bg-surface);
+  color: var(--text);
+  box-shadow: var(--shadow-card);
+}
+
+.cal__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.cal__today {
+  height: 30px;
+  padding: 0 var(--sp-3);
+  font-size: var(--fs-meta);
+}
+
+.cal__panel {
+  padding: var(--sp-4);
+}
+
+.cal__periodHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--sp-3);
+}
+
+.cal__period {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-section);
+  font-weight: 500;
+}
+
+.cal__periodMeta {
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  color: var(--text-muted);
+}
+
+.cal__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  color: var(--text-faint);
+  text-transform: uppercase;
+}
+
+.cal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: minmax(92px, auto);
+  gap: 4px;
+}
+
+.cal__week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: minmax(220px, auto);
+  gap: 4px;
+}
+
+.cal__day {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-input);
+  background: var(--bg-surface);
+  overflow: hidden;
+}
+.cal__day[data-outside='true'] {
+  background: var(--bg-app);
+  opacity: 0.55;
+}
+.cal__day[data-today='true'] {
+  border-color: var(--accent);
+}
+
+.cal__dayNum {
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--text-muted);
+}
+
+.cal__chip {
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cal__chip--high {
+  background: var(--pri-high-bg);
+  color: var(--pri-high-text);
+}
+.cal__chip--medium {
+  background: var(--pri-med-bg);
+  color: var(--pri-med-text);
+}
+.cal__chip--low {
+  background: var(--pri-low-bg);
+  color: var(--pri-low-text);
+}
+.cal__chip[data-done='true'] {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.cal__more,
+.cal__income {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  color: var(--text-faint);
+}
+.cal__income {
+  margin-top: auto;
+  color: var(--success-dot);
+}
+
+.cal__year {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--sp-3);
+}
+
+.cal__monthCard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  background: var(--bg-surface);
+  cursor: pointer;
+  text-align: center;
+  color: inherit;
+}
+.cal__monthCard:hover {
+  background: var(--bg-hover);
+}
+.cal__monthCard[data-current='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.cal__monthName {
+  font-family: var(--font-mono);
+  font-size: var(--fs-item);
+}
+
+.cal__monthMeta {
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  color: var(--text-muted);
+}
+
+.cal__rail {
+  display: flex;
+  flex-direction: column;
+}
+
+.cal__stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-2) 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-meta);
+  color: var(--text-muted);
+}
+.cal__stat strong {
+  font-family: var(--font-mono);
+  color: var(--text);
+}
+.cal__stat strong[data-overdue='true'] {
+  color: var(--danger);
+}
+
+@media (max-width: 1000px) {
+  .cal {
+    grid-template-columns: 1fr;
+  }
+  .cal__grid {
+    grid-auto-rows: minmax(70px, auto);
+  }
+}

@@ -50,7 +50,7 @@ jobs:
         run: cargo fmt --all --check
         working-directory: src-tauri
       - name: Clippy
-        run: cargo clippy --all-targets -- -D warnings
+        run: cargo clippy --all-targets --all-features -- -D warnings
         working-directory: src-tauri
       - name: Rust tests
         run: cargo test --all-features
@@ -76,13 +76,44 @@ jobs:
 
       - run: npm ci
 
-      # Authenticode signing (U22). Skipped unless the secrets are present, so
-      # forks and ordinary branch pushes still produce an unsigned installer.
-      - name: Build installer
-        run: npm run tauri build -- --verbose
+      # Authenticode signing (U22, R3). Runs only when the secrets exist, so
+      # forks and ordinary branch pushes still produce an unsigned installer
+      # rather than failing. See docs/packaging.md.
+      - name: Import signing certificate
+        id: signing
+        if: ${{ env.WINDOWS_CERTIFICATE != '' }}
         env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        shell: pwsh
+        run: |
+          $pfxPath = Join-Path $env:RUNNER_TEMP 'sanctum-signing.pfx'
+          [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE))
+          $password = ConvertTo-SecureString $env:WINDOWS_CERTIFICATE_PASSWORD -AsPlainText -Force
+          $cert = Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation Cert:\CurrentUser\My -Password $password
+          Remove-Item $pfxPath -Force
+
+          # Patch the thumbprint in rather than committing it: which key is
+          # authoritative is a deployment fact, not a source fact.
+          $config = Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json
+          $config.bundle.windows | Add-Member -NotePropertyName certificateThumbprint -NotePropertyValue $cert.Thumbprint -Force
+          $config | ConvertTo-Json -Depth 20 | Set-Content src-tauri/tauri.conf.json -Encoding utf8
+          "signed=true" >> $env:GITHUB_OUTPUT
+
+      - name: Build installer
+        run: npm run tauri build
+
+      - name: Report signature status
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem src-tauri/target/release/bundle/nsis/*.exe | Select-Object -First 1
+          $signature = Get-AuthenticodeSignature $installer.FullName
+          Write-Host "installer : $($installer.Name)"
+          Write-Host "size      : $([math]::Round($installer.Length / 1MB, 2)) MB"
+          Write-Host "signature : $($signature.Status)"
+          if ($signature.Status -ne 'Valid') {
+            Write-Warning 'Installer is unsigned. Windows SmartScreen will warn on first run. See docs/packaging.md.'
+          }
 
       - name: Upload installer
         uses: actions/upload-artifact@v4

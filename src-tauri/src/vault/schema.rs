@@ -118,6 +118,34 @@ pub const MIGRATIONS: &[&str] = &[
     );
     CREATE INDEX idx_activity_created ON activity(created_at DESC);
     "#,
+    // --- M2: monotonic ordering for the activity log ------------------------
+    //
+    // Row ids are random by design (see the header note), so they cannot break
+    // a tie between two entries written in the same second. Without a
+    // monotonic key the "keep the newest 500" trim discards arbitrary rows.
+    r#"
+    ALTER TABLE activity ADD COLUMN seq INTEGER NOT NULL DEFAULT 0;
+    UPDATE activity SET seq = rowid;
+    CREATE INDEX idx_activity_seq ON activity(seq DESC);
+    "#,
+    // --- M3: timestamps in milliseconds -------------------------------------
+    //
+    // Seconds are too coarse to order a list the user watches: two edits in
+    // the same second fell through to the random-id tiebreak and came back in
+    // arbitrary order. Milliseconds also match JavaScript natively, so no
+    // boundary has to multiply or divide.
+    r#"
+    UPDATE vault_header SET created_at = created_at * 1000, updated_at = updated_at * 1000;
+    UPDATE folders     SET created_at = created_at * 1000, updated_at = updated_at * 1000;
+    UPDATE credentials SET created_at = created_at * 1000, updated_at = updated_at * 1000;
+    UPDATE notes       SET created_at = created_at * 1000, updated_at = updated_at * 1000;
+    UPDATE tasks       SET created_at = created_at * 1000, updated_at = updated_at * 1000,
+                           due_date = due_date * 1000;
+    UPDATE income      SET created_at = created_at * 1000, updated_at = updated_at * 1000,
+                           received_on = received_on * 1000;
+    UPDATE favorites   SET created_at = created_at * 1000;
+    UPDATE activity    SET created_at = created_at * 1000;
+    "#,
 ];
 
 /// Schema version a fresh vault is created at.

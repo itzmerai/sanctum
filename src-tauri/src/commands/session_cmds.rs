@@ -6,6 +6,7 @@ use serde::Serialize;
 
 use crate::vault;
 
+use super::windows::{reveal_app, reveal_lock};
 use super::{lock_poisoned, AppState, CommandResult};
 
 /// Everything the shell needs to decide which window to show.
@@ -44,6 +45,7 @@ pub fn vault_status(state: tauri::State<'_, AppState>) -> CommandResult<VaultSta
 /// the window for the duration.
 #[tauri::command]
 pub async fn unlock_vault(
+    app: tauri::AppHandle,
     state: tauri::State<'_, AppState>,
     password: String,
 ) -> CommandResult<()> {
@@ -52,14 +54,18 @@ pub async fn unlock_vault(
         vault::unlock_with_password(&vault, &password)?
     };
 
-    let mut session = state.session.lock().map_err(|_| lock_poisoned("session"))?;
-    session.unlock(dek, Instant::now());
+    {
+        let mut session = state.session.lock().map_err(|_| lock_poisoned("session"))?;
+        session.unlock(dek, Instant::now());
+    }
+    reveal_app(&app);
     Ok(())
 }
 
 /// Unlocks with the recovery code (R12).
 #[tauri::command]
 pub async fn unlock_with_recovery(
+    app: tauri::AppHandle,
     state: tauri::State<'_, AppState>,
     code: String,
 ) -> CommandResult<()> {
@@ -68,16 +74,22 @@ pub async fn unlock_with_recovery(
         vault::unlock_with_recovery(&vault, &code)?
     };
 
-    let mut session = state.session.lock().map_err(|_| lock_poisoned("session"))?;
-    session.unlock(dek, Instant::now());
+    {
+        let mut session = state.session.lock().map_err(|_| lock_poisoned("session"))?;
+        session.unlock(dek, Instant::now());
+    }
+    reveal_app(&app);
     Ok(())
 }
 
 /// Locks the vault, dropping the DEK (R9, KTD15).
 #[tauri::command]
-pub fn lock_vault(state: tauri::State<'_, AppState>) -> CommandResult<()> {
-    let mut session = state.session.lock().map_err(|_| lock_poisoned("session"))?;
-    session.lock();
+pub fn lock_vault(app: tauri::AppHandle, state: tauri::State<'_, AppState>) -> CommandResult<()> {
+    {
+        let mut session = state.session.lock().map_err(|_| lock_poisoned("session"))?;
+        session.lock();
+    }
+    reveal_lock(&app);
     Ok(())
 }
 

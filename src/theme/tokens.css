@@ -1,0 +1,303 @@
+/* Sanctum design tokens (U8, KTD7).
+ *
+ * Values are read off the 32 reference screenshots -- see
+ * docs/reference/visual-grounding.md, which resolves OQ4.
+ *
+ * Three independent axes, each persisted separately (R37):
+ *   [data-theme]  light | dark
+ *   [data-accent] sage | clay | slate | moss | stone | dusk
+ *   [data-size]   small | medium | large
+ *
+ * The accent is defined as a set of variables per accent so switching is a
+ * single attribute change with no per-component work.
+ */
+
+:root {
+  /* --- typography ------------------------------------------------------- */
+  /* The identity-defining detail of the reference: monospace for structural
+   * text (headings, names, labels, buttons, numerals), sans for prose. */
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --font-sans: "Inter", ui-sans-serif, "Segoe UI", system-ui, sans-serif;
+
+  --fs-page-title: 1.375rem;
+  --fs-greeting: 1.5rem;
+  --fs-section: 0.9375rem;
+  --fs-body: 0.84375rem;
+  --fs-item: 0.84375rem;
+  --fs-label: 0.65625rem;
+  --fs-meta: 0.71875rem;
+  --fs-stat: 1.625rem;
+
+  --tracking-label: 0.09em;
+
+  /* --- shape ------------------------------------------------------------ */
+  --r-card: 10px;
+  --r-modal: 14px;
+  --r-input: 8px;
+  --r-btn: 8px;
+  --r-pill: 999px;
+  --r-icon: 8px;
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+
+  /* --- geometry --------------------------------------------------------- */
+  --titlebar-h: 40px;
+  --sidebar-w: 232px;
+  --sidebar-rail-w: 56px;
+  --row-h: 36px;
+  --control-h: 38px;
+
+  /* --- motion ----------------------------------------------------------- */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur-fast: 120ms;
+  --dur: 180ms;
+}
+
+/* --- light theme (default) ------------------------------------------------ */
+:root,
+:root[data-theme="light"] {
+  --bg-titlebar: #0d0d0f;
+  --bg-app: #f6f6f5;
+  --bg-sidebar: #fbfbfa;
+  --bg-surface: #ffffff;
+  --bg-input: #f2f2f0;
+  --bg-hover: #f0f0ee;
+  --bg-active: #eaeae8;
+
+  --border: #e7e7e4;
+  --border-strong: #d8d8d4;
+
+  --text: #19191a;
+  --text-muted: #8b8b86;
+  --text-faint: #a8a8a3;
+  --text-oncolor: #ffffff;
+
+  --warn-bg: #fdf6e7;
+  --warn-dot: #e0a63c;
+  --warn-text: #8a6a1f;
+
+  --danger: #d64550;
+  --danger-bg: #fdecee;
+  --success-dot: #4a9c6d;
+
+  --pri-high-bg: #fde8ec;
+  --pri-high-text: #b3384f;
+  --pri-med-bg: #fdf3dd;
+  --pri-med-text: #8a6a1f;
+  --pri-low-bg: #e8f3ea;
+  --pri-low-text: #3d7a52;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-raised: 0 2px 8px rgb(0 0 0 / 0.06);
+  --shadow-modal: 0 16px 48px rgb(0 0 0 / 0.18);
+  --scrim: rgb(0 0 0 / 0.45);
+}
+
+/* --- dark theme ----------------------------------------------------------- */
+:root[data-theme="dark"] {
+  --bg-titlebar: #0d0d0f;
+  --bg-app: #1b1c1e;
+  --bg-sidebar: #17181a;
+  --bg-surface: #232426;
+  --bg-input: #2b2c2f;
+  --bg-hover: #2a2b2e;
+  --bg-active: #313236;
+
+  --border: #303134;
+  --border-strong: #3d3e42;
+
+  --text: #e9e9e6;
+  --text-muted: #9a9a95;
+  --text-faint: #77776f;
+  --text-oncolor: #ffffff;
+
+  --warn-bg: #2e2718;
+  --warn-dot: #e0a63c;
+  --warn-text: #d9b877;
+
+  --danger: #e26370;
+  --danger-bg: #331d20;
+  --success-dot: #5cb583;
+
+  --pri-high-bg: #37222a;
+  --pri-high-text: #e58b9c;
+  --pri-med-bg: #332c1c;
+  --pri-med-text: #d9b877;
+  --pri-low-bg: #1e2f24;
+  --pri-low-text: #7dbd97;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-raised: 0 2px 8px rgb(0 0 0 / 0.35);
+  --shadow-modal: 0 16px 48px rgb(0 0 0 / 0.55);
+  --scrim: rgb(0 0 0 / 0.6);
+}
+
+/* --- accents (R37) -------------------------------------------------------- */
+/* `--accent` is the solid fill; `--accent-dot` the swatch; `--accent-soft` a
+ * tinted background for selected states. */
+
+:root,
+:root[data-accent="slate"] {
+  --accent: #37647f;
+  --accent-hover: #2e5570;
+  --accent-dot: #4a7591;
+  --accent-soft: #e8eff4;
+}
+:root[data-accent="sage"] {
+  --accent: #6d8a61;
+  --accent-hover: #5c7752;
+  --accent-dot: #7f9c72;
+  --accent-soft: #eef2ea;
+}
+:root[data-accent="clay"] {
+  --accent: #b46240;
+  --accent-hover: #9c5335;
+  --accent-dot: #c8734f;
+  --accent-soft: #f8ede8;
+}
+:root[data-accent="moss"] {
+  --accent: #4e7749;
+  --accent-hover: #41653d;
+  --accent-dot: #5f8a5a;
+  --accent-soft: #ecf2eb;
+}
+:root[data-accent="stone"] {
+  --accent: #75756c;
+  --accent-hover: #63635b;
+  --accent-dot: #8a8a80;
+  --accent-soft: #efefec;
+}
+:root[data-accent="dusk"] {
+  --accent: #7869a3;
+  --accent-hover: #665890;
+  --accent-dot: #8b7bb5;
+  --accent-soft: #f0edf7;
+}
+
+/* Dark theme lifts each accent so it stays legible on a dark ground. */
+:root[data-theme="dark"] {
+  --accent-soft: #23303a;
+}
+:root[data-theme="dark"][data-accent="slate"] { --accent: #6fa3c4; --accent-hover: #82b1cf; --accent-dot: #6fa3c4; --accent-soft: #22303a; }
+:root[data-theme="dark"][data-accent="sage"]  { --accent: #93ae86; --accent-hover: #a3bb97; --accent-dot: #93ae86; --accent-soft: #262e23; }
+:root[data-theme="dark"][data-accent="clay"]  { --accent: #d98a67; --accent-hover: #e29a7a; --accent-dot: #d98a67; --accent-soft: #34251e; }
+:root[data-theme="dark"][data-accent="moss"]  { --accent: #79a373; --accent-hover: #8bb185; --accent-dot: #79a373; --accent-soft: #232c22; }
+:root[data-theme="dark"][data-accent="stone"] { --accent: #a3a399; --accent-hover: #b1b1a8; --accent-dot: #a3a399; --accent-soft: #2b2b28; }
+:root[data-theme="dark"][data-accent="dusk"]  { --accent: #a595cc; --accent-hover: #b3a5d6; --accent-dot: #a595cc; --accent-soft: #2a2634; }
+
+/* --- font size (R37) ------------------------------------------------------ */
+:root[data-size="small"] {
+  --fs-page-title: 1.25rem;
+  --fs-greeting: 1.35rem;
+  --fs-section: 0.875rem;
+  --fs-body: 0.78125rem;
+  --fs-item: 0.78125rem;
+  --fs-meta: 0.6875rem;
+  --fs-stat: 1.5rem;
+}
+:root[data-size="large"] {
+  --fs-page-title: 1.5rem;
+  --fs-greeting: 1.65rem;
+  --fs-section: 1rem;
+  --fs-body: 0.9375rem;
+  --fs-item: 0.9375rem;
+  --fs-meta: 0.8125rem;
+  --fs-stat: 1.8rem;
+}
+
+/* --- primitives ----------------------------------------------------------- */
+
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.prose {
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+}
+
+.btn {
+  font-family: var(--font-mono);
+  font-size: var(--fs-item);
+  height: var(--control-h);
+  padding: 0 var(--sp-4);
+  border-radius: var(--r-btn);
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.btn:hover:not(:disabled) { background: var(--bg-hover); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-oncolor);
+}
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+.btn-danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--text-oncolor);
+}
+
+.input {
+  font-family: var(--font-mono);
+  font-size: var(--fs-item);
+  height: var(--control-h);
+  width: 100%;
+  padding: 0 var(--sp-3);
+  border-radius: var(--r-input);
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text);
+  outline: none;
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.input::placeholder { color: var(--text-faint); }
+.input:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Keyboard focus is always visible; pointer focus is not. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
