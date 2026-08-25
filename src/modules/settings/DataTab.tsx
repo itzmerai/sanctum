@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react'
 
 import { Icon } from '../../components/Icon'
 import { Modal } from '../../components/Modal'
+import { recordBackup } from '../../lib/backupRecord'
 import { CommandError, data, hasBackend } from '../../lib/ipc'
 
 type Dialog = 'export' | 'import' | 'reset' | null
@@ -58,6 +59,7 @@ export function DataTab() {
       const destination = await pickSavePath(`sanctum-${stamp}.sanctumbak`, 'sanctumbak')
       if (!destination) return
       await data.exportBackup(destination, password)
+      recordBackup()
       setMessage({ kind: 'ok', text: 'Backup written.' })
       setDialog(null)
       setPassword('')

@@ -1,8 +1,8 @@
 /**
  * The note overflow menu (U14: R27).
  *
- * Move to folder / Add to favorites are wired in U18, where folders exist as
- * a screen; the two actions that work standalone are here.
+ * The four actions the reference lists (R27): move to folder, favourite,
+ * duplicate, delete.
  */
 import { useEffect, useRef, useState } from 'react'
 
@@ -11,9 +11,18 @@ import { Icon } from '../../components/Icon'
 interface Props {
   onDuplicate: () => void
   onDelete: () => void
+  onMoveToFolder: () => void
+  onToggleFavorite: () => void
+  favorite: boolean
 }
 
-export function NoteMenu({ onDuplicate, onDelete }: Props) {
+export function NoteMenu({
+  onDuplicate,
+  onDelete,
+  onMoveToFolder,
+  onToggleFavorite,
+  favorite,
+}: Props) {
   const [open, setOpen] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const box = useRef<HTMLDivElement>(null)
@@ -43,6 +52,27 @@ export function NoteMenu({ onDuplicate, onDelete }: Props) {
 
       {open && (
         <div className="rowmenu__panel" role="menu">
+          <button
+            className="rowmenu__item"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false)
+              onMoveToFolder()
+            }}
+          >
+            <Icon name="folder" /> Move to folder
+          </button>
+          <button
+            className="rowmenu__item"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false)
+              onToggleFavorite()
+            }}
+          >
+            <Icon name={favorite ? 'star-filled' : 'star'} />
+            {favorite ? 'Remove from favorites' : 'Add to favorites'}
+          </button>
           <button
             className="rowmenu__item"
             role="menuitem"

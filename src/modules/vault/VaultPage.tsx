@@ -8,6 +8,7 @@
  * thousand entries this is the first thing that would need revisiting.
  */
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router'
 
 import { Icon } from '../../components/Icon'
 import { CommandError, type Credential, clipboard, credentials } from '../../lib/ipc'
@@ -29,10 +30,24 @@ export function VaultPage() {
   const [editing, setEditing] = useState<Credential | null>(null)
   const [creating, setCreating] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [seedPassword, setSeedPassword] = useState<string | null>(null)
+  const location = useLocation()
+  const navigate = useNavigate()
 
   useEffect(() => {
     void loadCredentials()
   }, [loadCredentials])
+
+  // R25: "Use in new credential" hands a generated password over in router
+  // state. Consume it once and clear it, so a later back-navigation does not
+  // silently reopen the form with a stale secret.
+  useEffect(() => {
+    const passed = (location.state as { generatedPassword?: string } | null)?.generatedPassword
+    if (!passed) return
+    setSeedPassword(passed)
+    setCreating(true)
+    navigate(location.pathname, { replace: true, state: null })
+  }, [location, navigate])
 
   useEffect(() => {
     if (!toast) return
@@ -220,13 +235,16 @@ export function VaultPage() {
       {(creating || editing) && (
         <CredentialForm
           existing={editing}
+          seedPassword={seedPassword}
           onClose={() => {
             setCreating(false)
             setEditing(null)
+            setSeedPassword(null)
           }}
           onSaved={async () => {
             setCreating(false)
             setEditing(null)
+            setSeedPassword(null)
             await loadCredentials()
           }}
         />

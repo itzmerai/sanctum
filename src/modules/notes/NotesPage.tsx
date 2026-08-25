@@ -16,7 +16,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { Icon } from '../../components/Icon'
 import { formatDateTime } from '../../lib/format'
-import { CommandError, notes, type Note } from '../../lib/ipc'
+import { CommandError, credentials, folders, notes, type Folder, type Note } from '../../lib/ipc'
 import { NoteMenu } from './NoteMenu'
 import './notes.css'
 
@@ -31,6 +31,8 @@ export function NotesPage() {
   const [draft, setDraft] = useState<{ title: string; body: string } | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [noteFolders, setNoteFolders] = useState<Folder[]>([])
+  const [labelText, setLabelText] = useState('')
   const bodyRef = useRef<HTMLTextAreaElement>(null)
 
   async function load(selectAfter?: number) {
@@ -52,6 +54,10 @@ export function NotesPage() {
 
   useEffect(() => {
     void load()
+    void folders
+      .list('notes')
+      .then(setNoteFolders)
+      .catch(() => setNoteFolders([]))
   }, [])
 
   const selected = useMemo(
@@ -69,6 +75,7 @@ export function NotesPage() {
     if (loadedFor.current === key) return
     loadedFor.current = key
     setDraft(selected ? { title: selected.title, body: selected.body } : null)
+    setLabelText(selected ? selected.labels.join(', ') : '')
   }, [selected])
 
   // Autosave. A notes editor that needs a Save button loses work.
@@ -118,6 +125,24 @@ export function NotesPage() {
   async function removeNote(id: number) {
     await notes.remove(id)
     setSelectedId(null)
+    await load()
+  }
+
+  /** Saves everything except title and body, which autosave owns. */
+  async function saveMeta(over: Partial<{ labels: string[]; folderId: number | null }>) {
+    if (!selected) return
+    await notes.update(selected.id, {
+      title: draft?.title ?? selected.title,
+      body: draft?.body ?? selected.body,
+      labels: over.labels ?? selected.labels,
+      folderId: over.folderId !== undefined ? over.folderId : selected.folderId,
+    })
+    await load()
+  }
+
+  async function toggleFavorite() {
+    if (!selected) return
+    await credentials.setFavorite('note', selected.id, !selected.favorite)
     await load()
   }
 
@@ -228,8 +253,11 @@ export function NotesPage() {
               <span className="notes__crumbTitle">{draft.title || 'Untitled note'}</span>
               <span className="notes__saving">{saving ? 'Saving…' : ''}</span>
               <NoteMenu
+                favorite={selected.favorite}
                 onDuplicate={() => void duplicateNote(selected.id)}
                 onDelete={() => void removeNote(selected.id)}
+                onToggleFavorite={() => void toggleFavorite()}
+                onMoveToFolder={() => document.getElementById('note-folder')?.focus()}
               />
             </header>
 
@@ -248,9 +276,42 @@ export function NotesPage() {
               <dd>{formatDateTime(selected.updatedAt)}</dd>
               <dt className="label">Labels</dt>
               <dd>
-                <span className="chip">
-                  {selected.labels.length > 0 ? selected.labels.join(', ') : 'No folder'}
-                </span>
+                <input
+                  className="input notes__labels"
+                  value={labelText}
+                  onChange={(event) => setLabelText(event.target.value)}
+                  onBlur={() =>
+                    void saveMeta({
+                      labels: labelText
+                        .split(',')
+                        .map((label) => label.trim())
+                        .filter(Boolean),
+                    })
+                  }
+                  placeholder="Architecture, Guides"
+                  aria-label="Note labels"
+                />
+              </dd>
+              <dt className="label">Folder</dt>
+              <dd>
+                <select
+                  id="note-folder"
+                  className="input notes__labels"
+                  value={selected.folderId ?? ''}
+                  onChange={(event) =>
+                    void saveMeta({
+                      folderId: event.target.value === '' ? null : Number(event.target.value),
+                    })
+                  }
+                  aria-label="Note folder"
+                >
+                  <option value="">No folder</option>
+                  {noteFolders.map((folder) => (
+                    <option key={folder.id} value={folder.id}>
+                      {folder.name}
+                    </option>
+                  ))}
+                </select>
               </dd>
             </dl>
 

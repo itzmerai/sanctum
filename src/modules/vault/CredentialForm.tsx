@@ -27,6 +27,8 @@ const SCORE_LABELS = ['Very weak', 'Weak', 'Fair', 'Strong', 'Excellent']
 
 interface Props {
   existing: Credential | null
+  /** A password handed over by the generator (R25). */
+  seedPassword?: string | null
   onClose: () => void
   onSaved: () => void | Promise<void>
 }
@@ -36,10 +38,10 @@ interface FolderOption {
   name: string
 }
 
-export function CredentialForm({ existing, onClose, onSaved }: Props) {
+export function CredentialForm({ existing, seedPassword, onClose, onSaved }: Props) {
   const [name, setName] = useState(existing?.name ?? '')
   const [username, setUsername] = useState(existing?.username ?? '')
-  const [password, setPassword] = useState('')
+  const [password, setPassword] = useState(seedPassword ?? '')
   const [passwordTouched, setPasswordTouched] = useState(existing === null)
   const [website, setWebsite] = useState(existing?.website ?? '')
   const [notes, setNotes] = useState(existing?.notes ?? '')
@@ -47,7 +49,9 @@ export function CredentialForm({ existing, onClose, onSaved }: Props) {
   const [folderId, setFolderId] = useState<number | null>(existing?.folderId ?? null)
   const [favorite, setFavorite] = useState(existing?.favorite ?? false)
 
-  const [reveal, setReveal] = useState(false)
+  // A generated password arrives visible: the user just chose it on screen,
+  // and masking it here would only invite a needless reveal click.
+  const [reveal, setReveal] = useState(Boolean(seedPassword))
   const [strength, setStrength] = useState<StrengthReport | null>(null)
   const [options, setOptions] = useState<FolderOption[]>([])
   const [busy, setBusy] = useState(false)
