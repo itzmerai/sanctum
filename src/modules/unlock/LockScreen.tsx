@@ -12,6 +12,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { Wordmark } from '../../components/Brand'
+import { Icon } from '../../components/Icon'
 import { WindowControls } from '../../components/WindowControls'
 import { CommandError, session } from '../../lib/ipc'
 import './lock.css'
@@ -100,7 +101,7 @@ export function LockScreen({ onUnlocked, onForgotPassword }: Props) {
               aria-label={reveal ? 'Hide password' : 'Show password'}
               tabIndex={-1}
             >
-              {reveal ? '●' : '○'}
+              <Icon name="eye" size={15} />
             </button>
           </div>
 

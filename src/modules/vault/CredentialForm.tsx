@@ -34,7 +34,7 @@ interface Props {
 }
 
 interface FolderOption {
-  id: number
+  id: string
   name: string
 }
 
@@ -46,7 +46,7 @@ export function CredentialForm({ existing, seedPassword, onClose, onSaved }: Pro
   const [website, setWebsite] = useState(existing?.website ?? '')
   const [notes, setNotes] = useState(existing?.notes ?? '')
   const [tagText, setTagText] = useState(existing?.tags.join(', ') ?? '')
-  const [folderId, setFolderId] = useState<number | null>(existing?.folderId ?? null)
+  const [folderId, setFolderId] = useState<string | null>(existing?.folderId ?? null)
   const [favorite, setFavorite] = useState(existing?.favorite ?? false)
 
   // A generated password arrives visible: the user just chose it on screen,
@@ -278,7 +278,8 @@ export function CredentialForm({ existing, seedPassword, onClose, onSaved }: Pro
               className="input"
               value={folderId ?? ''}
               onChange={(event) =>
-                setFolderId(event.target.value === '' ? null : Number(event.target.value))
+                // No Number(): ids are strings precisely because they do not survive one.
+                setFolderId(event.target.value === '' ? null : event.target.value)
               }
             >
               <option value="">No folder</option>

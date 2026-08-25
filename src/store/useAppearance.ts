@@ -31,6 +31,13 @@ interface AppearanceState {
   sidebar: SidebarMode
   /** Device-only display name, shown in the sidebar and greeting (R36). */
   displayName: string
+  /**
+   * Device-only avatar as a downscaled data URI (R36), or null.
+   *
+   * Not a vault record: the sidebar renders it before anything is unlocked,
+   * and a picture of the user is not a secret.
+   */
+  avatar: string | null
   /** Website icons default OFF (R24, AE12) -- the reference shows On. */
   websiteIcons: boolean
 
@@ -41,7 +48,16 @@ interface AppearanceState {
   setSidebar: (mode: SidebarMode) => void
   cycleSidebar: () => void
   setDisplayName: (name: string) => void
+  setAvatar: (dataUri: string | null) => void
   setWebsiteIcons: (on: boolean) => void
+  /**
+   * Forgets everything tied to the vault that was just destroyed (R39).
+   *
+   * Identity and the privacy default go; theme, accent, font size and sidebar
+   * stay, because those describe how you like the *application* to look, not
+   * whose vault it was.
+   */
+  resetAccountState: () => void
 }
 
 export const useAppearance = create<AppearanceState>()(
@@ -52,6 +68,7 @@ export const useAppearance = create<AppearanceState>()(
       fontSize: 'medium',
       sidebar: 'expanded',
       displayName: '',
+      avatar: null,
       websiteIcons: false,
 
       setTheme: (theme) => set({ theme }),
@@ -69,7 +86,15 @@ export const useAppearance = create<AppearanceState>()(
                 : 'expanded',
         }),
       setDisplayName: (displayName) => set({ displayName }),
+      setAvatar: (avatar) => set({ avatar }),
       setWebsiteIcons: (websiteIcons) => set({ websiteIcons }),
+      resetAccountState: () =>
+        set({
+          displayName: '',
+          avatar: null,
+          // Back to the safe default a fresh vault would have (R24, AE12).
+          websiteIcons: false,
+        }),
     }),
     { name: 'sanctum.appearance' },
   ),

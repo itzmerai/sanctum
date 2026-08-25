@@ -26,13 +26,13 @@ export function VaultPage() {
   const [view, setView] = useState<View>('list')
   const [query, setQuery] = useState('')
   const [tag, setTag] = useState('')
-  const [detailId, setDetailId] = useState<number | null>(null)
+  const [detailId, setDetailId] = useState<string | null>(null)
   const [editing, setEditing] = useState<Credential | null>(null)
   const [creating, setCreating] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [seedPassword, setSeedPassword] = useState<string | null>(null)
   // Set when arriving from a folder card, so the list shows that folder only.
-  const [folderFilter, setFolderFilter] = useState<{ id: number; name: string } | null>(null)
+  const [folderFilter, setFolderFilter] = useState<{ id: string; name: string } | null>(null)
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -45,7 +45,7 @@ export function VaultPage() {
   // silently reopen the form with a stale secret.
   useEffect(() => {
     const state = location.state as
-      | { generatedPassword?: string; folderId?: number; folderName?: string }
+      | { generatedPassword?: string; folderId?: string; folderName?: string }
       | null
     if (!state) return
 
@@ -53,7 +53,7 @@ export function VaultPage() {
       setSeedPassword(state.generatedPassword)
       setCreating(true)
     }
-    if (typeof state.folderId === 'number') {
+    if (state.folderId) {
       setFolderFilter({ id: state.folderId, name: state.folderName ?? 'Folder' })
     }
     navigate(location.pathname, { replace: true, state: null })
@@ -87,7 +87,7 @@ export function VaultPage() {
     })
   }, [items, query, tag, folderFilter])
 
-  async function copyPassword(id: number) {
+  async function copyPassword(id: string) {
     try {
       const receipt = await clipboard.copyPassword(id)
       setToast(
@@ -105,7 +105,7 @@ export function VaultPage() {
     await loadCredentials()
   }
 
-  async function remove(id: number) {
+  async function remove(id: string) {
     await credentials.remove(id)
     setDetailId(null)
     await loadCredentials()

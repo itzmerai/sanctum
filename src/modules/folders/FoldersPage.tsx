@@ -6,10 +6,10 @@
  * leaving it to the UI.
  */
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router'
 
 import { Icon } from '../../components/Icon'
 import { Modal } from '../../components/Modal'
+import { FolderContents } from './FolderContents'
 import { CommandError, credentials, folders, type Folder } from '../../lib/ipc'
 import './folders.css'
 
@@ -28,13 +28,15 @@ export const FOLDER_COLORS = [
 type Kind = 'passwords' | 'notes'
 
 export function FoldersPage() {
-  const navigate = useNavigate()
   const [kind, setKind] = useState<Kind>('passwords')
   const [items, setItems] = useState<Folder[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<Folder | null>(null)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Opening a folder shows its contents here rather than navigating to the
+  // Vault or Notes tab, which would lose the place you opened it from.
+  const [open, setOpen] = useState<Folder | null>(null)
 
   const load = useCallback(async (which: Kind) => {
     setLoading(true)
@@ -59,9 +61,21 @@ export function FoldersPage() {
     await load(kind)
   }
 
-  async function remove(id: number) {
+  async function remove(id: string) {
     await folders.remove(id)
     await load(kind)
+  }
+
+  if (open) {
+    return (
+      <div data-testid="route-folders">
+        <FolderContents
+          folder={open}
+          onBack={() => setOpen(null)}
+          onChanged={() => load(kind)}
+        />
+      </div>
+    )
   }
 
   return (
@@ -122,11 +136,7 @@ export function FoldersPage() {
               </span>
               <button
                 className="fold__text"
-                onClick={() =>
-                  navigate(kind === 'notes' ? '/notes' : '/vault', {
-                    state: { folderId: folder.id, folderName: folder.name },
-                  })
-                }
+                onClick={() => setOpen(folder)}
                 aria-label={`Open ${folder.name}`}
               >
                 <span className="fold__name">{folder.name}</span>

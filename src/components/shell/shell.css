@@ -284,3 +284,20 @@
   background: #c42b1c;
   color: #fff;
 }
+
+/* --- avatar (R36) ---------------------------------------------------------- */
+
+.avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: block;
+}
+
+/* The fallback mark, when no picture has been chosen. */
+.avatar--mark {
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--text-oncolor);
+}

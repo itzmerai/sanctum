@@ -11,12 +11,14 @@ import { useEffect, useState } from 'react'
 
 import { Icon } from '../../components/Icon'
 import { Modal } from '../../components/Modal'
-import { recordBackup } from '../../lib/backupRecord'
+import { clearBackupRecord, recordBackup } from '../../lib/backupRecord'
 import { CommandError, data, hasBackend } from '../../lib/ipc'
+import { useAppearance } from '../../store/useAppearance'
 
 type Dialog = 'export' | 'import' | 'reset' | null
 
 export function DataTab() {
+  const resetAccountState = useAppearance((state) => state.resetAccountState)
   const [dialog, setDialog] = useState<Dialog>(null)
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
@@ -128,6 +130,11 @@ export function DataTab() {
     setBusy(true)
     try {
       await data.resetVault()
+      // Device state described the vault that just ceased to exist. Leaving
+      // the backup record in particular would have the Vault Protection panel
+      // claim a brand-new vault is backed up.
+      clearBackupRecord()
+      resetAccountState()
       setDialog(null)
       setResetTyped('')
       // Restarting is the honest way back to first-run setup: every store in
@@ -276,10 +283,10 @@ export function DataTab() {
           }
         >
           <p className="setrow__hint">
-            Every credential, note, task and income entry on this device will be deleted. Your
-            recovery code will not bring them back — it opens a vault, and there will not be
-            one. If you have an encrypted backup, this is the moment to check you can still
-            open it.
+            Every credential, note, task and income entry on this device will be deleted, along
+            with your display name and profile picture. Your recovery code will not bring them
+            back — it opens a vault, and there will not be one. If you have an encrypted backup,
+            this is the moment to check you can still open it.
           </p>
           <label className="label field__label" htmlFor="reset-ack">
             Type RESET to confirm

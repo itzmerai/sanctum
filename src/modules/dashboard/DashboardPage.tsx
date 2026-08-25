@@ -107,7 +107,7 @@ export function DashboardPage() {
 
   const readyCount = checks.filter((check) => check.ready).length
 
-  async function copyPassword(id: number) {
+  async function copyPassword(id: string) {
     try {
       const receipt = await clipboard.copyPassword(id)
       setToast(

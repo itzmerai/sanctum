@@ -67,7 +67,7 @@ export function IncomePage() {
     [items],
   )
 
-  async function remove(id: number) {
+  async function remove(id: string) {
     await income.remove(id)
     setDetail(null)
     await load()

@@ -66,6 +66,16 @@ async function invoke<T>(command: string, args?: Record<string, unknown>): Promi
   }
 }
 
+/**
+ * Row ids are **strings**, not numbers.
+ *
+ * They are random 63-bit integers (so a deleted row cannot have its id
+ * reused and its ciphertext replayed). A JSON number is a float64 in
+ * JavaScript, exact only to 2^53 - 1, so an id sent as a number silently
+ * loses its low bits and then matches no row. See src-tauri/commands/ids.rs.
+ */
+export type Id = string
+
 // --- types -------------------------------------------------------------------
 
 export interface VaultStatus {
@@ -84,13 +94,13 @@ export interface StrengthReport {
 
 /** A credential as the UI sees it. Note the absence of `password`. */
 export interface Credential {
-  id: number
+  id: Id
   name: string
   username: string
   website: string
   notes: string
   tags: string[]
-  folderId: number | null
+  folderId: Id | null
   favorite: boolean
   createdAt: number
   updatedAt: number
@@ -103,7 +113,7 @@ export interface CredentialInput {
   website: string
   notes: string
   tags: string[]
-  folderId: number | null
+  folderId: Id | null
 }
 
 export type ExclusionStatus = 'excluded' | 'notExcluded'
@@ -154,14 +164,14 @@ export const setup = {
 
 export const credentials = {
   list: () => invoke<Credential[]>('list_credentials'),
-  get: (id: number) => invoke<Credential | null>('get_credential', { id }),
+  get: (id: Id) => invoke<Credential | null>('get_credential', { id }),
   /** The only call that returns a password. Use sparingly and never log it. */
-  revealPassword: (id: number) => invoke<string>('reveal_password', { id }),
-  create: (input: CredentialInput) => invoke<number>('create_credential', { input }),
-  update: (id: number, input: CredentialInput) =>
+  revealPassword: (id: Id) => invoke<string>('reveal_password', { id }),
+  create: (input: CredentialInput) => invoke<Id>('create_credential', { input }),
+  update: (id: Id, input: CredentialInput) =>
     invoke<void>('update_credential', { id, input }),
-  remove: (id: number) => invoke<void>('delete_credential', { id }),
-  setFavorite: (entityType: string, id: number, favorite: boolean) =>
+  remove: (id: Id) => invoke<void>('delete_credential', { id }),
+  setFavorite: (entityType: string, id: Id, favorite: boolean) =>
     invoke<void>('set_favorite', { entityType, id, favorite }),
   count: () => invoke<number>('credential_count'),
 }
@@ -170,7 +180,7 @@ export const credentials = {
 
 export const clipboard = {
   /** Copies a stored password without it ever entering JavaScript. */
-  copyPassword: (id: number) => invoke<CopyReceipt>('copy_password', { id }),
+  copyPassword: (id: Id) => invoke<CopyReceipt>('copy_password', { id }),
   copyText: (text: string, autoClear = true) =>
     invoke<CopyReceipt>('copy_text', { text, autoClear }),
   clear: (receipt: CopyReceipt) => invoke<boolean>('clear_clipboard', { receipt }),
@@ -198,7 +208,7 @@ export const data = {
 // --- folders + generator -----------------------------------------------------
 
 export interface Folder {
-  id: number
+  id: Id
   kind: string
   name: string
   color: string
@@ -210,10 +220,10 @@ export interface Folder {
 export const folders = {
   list: (kind: 'passwords' | 'notes') => invoke<Folder[]>('list_folders', { kind }),
   create: (kind: 'passwords' | 'notes', name: string, color: string) =>
-    invoke<number>('create_folder', { kind, name, color }),
-  update: (id: number, name: string, color: string) =>
+    invoke<Id>('create_folder', { kind, name, color }),
+  update: (id: Id, name: string, color: string) =>
     invoke<void>('update_folder', { id, name, color }),
-  remove: (id: number) => invoke<void>('delete_folder', { id }),
+  remove: (id: Id) => invoke<void>('delete_folder', { id }),
 }
 
 export interface GeneratorOptions {
@@ -232,11 +242,11 @@ export const generator = {
 // --- notes / tasks / income / activity ---------------------------------------
 
 export interface Note {
-  id: number
+  id: Id
   title: string
   body: string
   labels: string[]
-  folderId: number | null
+  folderId: Id | null
   favorite: boolean
   createdAt: number
   updatedAt: number
@@ -246,22 +256,22 @@ export interface NoteInput {
   title: string
   body: string
   labels: string[]
-  folderId: number | null
+  folderId: Id | null
 }
 
 export const notes = {
   list: () => invoke<Note[]>('list_notes'),
-  create: (input: NoteInput) => invoke<number>('create_note', { input }),
-  update: (id: number, input: NoteInput) => invoke<void>('update_note', { id, input }),
-  remove: (id: number) => invoke<void>('delete_note', { id }),
-  duplicate: (id: number) => invoke<number>('duplicate_note', { id }),
+  create: (input: NoteInput) => invoke<Id>('create_note', { input }),
+  update: (id: Id, input: NoteInput) => invoke<void>('update_note', { id, input }),
+  remove: (id: Id) => invoke<void>('delete_note', { id }),
+  duplicate: (id: Id) => invoke<Id>('duplicate_note', { id }),
 }
 
 export type TaskStatus = 'todo' | 'in_progress' | 'completed'
 export type TaskPriority = 'low' | 'medium' | 'high'
 
 export interface Task {
-  id: number
+  id: Id
   title: string
   description: string
   tags: string[]
@@ -284,14 +294,14 @@ export interface TaskInput {
 
 export const tasks = {
   list: () => invoke<Task[]>('list_tasks'),
-  create: (input: TaskInput) => invoke<number>('create_task', { input }),
-  update: (id: number, input: TaskInput) => invoke<void>('update_task', { id, input }),
-  setStatus: (id: number, status: TaskStatus) => invoke<void>('set_task_status', { id, status }),
-  remove: (id: number) => invoke<void>('delete_task', { id }),
+  create: (input: TaskInput) => invoke<Id>('create_task', { input }),
+  update: (id: Id, input: TaskInput) => invoke<void>('update_task', { id, input }),
+  setStatus: (id: Id, status: TaskStatus) => invoke<void>('set_task_status', { id, status }),
+  remove: (id: Id) => invoke<void>('delete_task', { id }),
 }
 
 export interface IncomeEntry {
-  id: number
+  id: Id
   source: string
   /** Minor units (cents). Never a float -- see vault/income.rs. */
   amountMinor: number
@@ -313,13 +323,13 @@ export interface IncomeInput {
 
 export const income = {
   list: () => invoke<IncomeEntry[]>('list_income'),
-  create: (input: IncomeInput) => invoke<number>('create_income', { input }),
-  update: (id: number, input: IncomeInput) => invoke<void>('update_income', { id, input }),
-  remove: (id: number) => invoke<void>('delete_income', { id }),
+  create: (input: IncomeInput) => invoke<Id>('create_income', { input }),
+  update: (id: Id, input: IncomeInput) => invoke<void>('update_income', { id, input }),
+  remove: (id: Id) => invoke<void>('delete_income', { id }),
 }
 
 export interface ActivityEntry {
-  id: number
+  id: Id
   entityType: string
   action: 'created' | 'updated' | 'deleted'
   subject: string

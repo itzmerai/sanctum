@@ -25,7 +25,7 @@ const AUTOSAVE_MS = 900
 
 export function NotesPage() {
   const [items, setItems] = useState<Note[]>([])
-  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [draft, setDraft] = useState<{ title: string; body: string } | null>(null)
@@ -35,7 +35,7 @@ export function NotesPage() {
   const [labelText, setLabelText] = useState('')
   const bodyRef = useRef<HTMLTextAreaElement>(null)
 
-  async function load(selectAfter?: number) {
+  async function load(selectAfter?: string) {
     try {
       const list = await notes.list()
       setItems(list)
@@ -122,14 +122,14 @@ export function NotesPage() {
     await load(id)
   }
 
-  async function removeNote(id: number) {
+  async function removeNote(id: string) {
     await notes.remove(id)
     setSelectedId(null)
     await load()
   }
 
   /** Saves everything except title and body, which autosave owns. */
-  async function saveMeta(over: Partial<{ labels: string[]; folderId: number | null }>) {
+  async function saveMeta(over: Partial<{ labels: string[]; folderId: string | null }>) {
     if (!selected) return
     await notes.update(selected.id, {
       title: draft?.title ?? selected.title,
@@ -146,7 +146,7 @@ export function NotesPage() {
     await load()
   }
 
-  async function duplicateNote(id: number) {
+  async function duplicateNote(id: string) {
     const copy = await notes.duplicate(id)
     await load(copy)
   }
@@ -300,7 +300,7 @@ export function NotesPage() {
                   value={selected.folderId ?? ''}
                   onChange={(event) =>
                     void saveMeta({
-                      folderId: event.target.value === '' ? null : Number(event.target.value),
+                      folderId: event.target.value === '' ? null : event.target.value,
                     })
                   }
                   aria-label="Note folder"

@@ -15,7 +15,8 @@ import { NavLink, Outlet } from 'react-router'
 import { events, hasBackend, session } from '../../lib/ipc'
 import { applyAppearance, useAppearance } from '../../store/useAppearance'
 import { useVault } from '../../store/useVault'
-import { SanctumMark, Wordmark } from '../Brand'
+import { Avatar } from '../Avatar'
+import { Wordmark } from '../Brand'
 import { CommandPalette } from '../CommandPalette'
 import { Icon, type IconName } from '../Icon'
 import { WindowControls } from '../WindowControls'
@@ -168,9 +169,7 @@ export function Shell() {
       {!hidden && (
         <aside className="sidebar">
           <div className="sidebar__account">
-            <div className="sidebar__avatar" aria-hidden="true">
-              <SanctumMark size={16} />
-            </div>
+            <Avatar size={28} className="sidebar__avatar" />
             {!collapsed && <span className="sidebar__name">{name}</span>}
             {!collapsed && (
               <button

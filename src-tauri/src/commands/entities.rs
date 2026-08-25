@@ -19,10 +19,12 @@ use super::{with_dek, AppState, CommandError, CommandResult};
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NoteDto {
+    #[serde(with = "crate::commands::ids::as_string")]
     pub id: i64,
     pub title: String,
     pub body: String,
     pub labels: Vec<String>,
+    #[serde(with = "crate::commands::ids::as_string_opt")]
     pub folder_id: Option<i64>,
     pub favorite: bool,
     pub created_at: i64,
@@ -50,6 +52,7 @@ pub struct NoteInput {
     pub title: String,
     pub body: String,
     pub labels: Vec<String>,
+    #[serde(with = "crate::commands::ids::as_string_opt")]
     pub folder_id: Option<i64>,
 }
 
@@ -80,8 +83,8 @@ pub fn list_notes(state: tauri::State<'_, AppState>) -> CommandResult<Vec<NoteDt
 }
 
 #[tauri::command]
-pub fn create_note(state: tauri::State<'_, AppState>, input: NoteInput) -> CommandResult<i64> {
-    with_dek(&state, |vault, dek| {
+pub fn create_note(state: tauri::State<'_, AppState>, input: NoteInput) -> CommandResult<String> {
+    let id = with_dek(&state, |vault, dek| {
         let title = note_title(&input.title);
         let id = vault.insert_note(
             dek,
@@ -94,15 +97,17 @@ pub fn create_note(state: tauri::State<'_, AppState>, input: NoteInput) -> Comma
         )?;
         vault.log_activity(dek, "note", ACTION_CREATED, &title)?;
         Ok(id)
-    })
+    })?;
+    Ok(id.to_string())
 }
 
 #[tauri::command]
 pub fn update_note(
     state: tauri::State<'_, AppState>,
-    id: i64,
+    id: String,
     input: NoteInput,
 ) -> CommandResult<()> {
+    let id = crate::commands::ids::parse_id(&id)?;
     with_dek(&state, |vault, dek| {
         let title = note_title(&input.title);
         vault.update_note(
@@ -121,7 +126,8 @@ pub fn update_note(
 }
 
 #[tauri::command]
-pub fn delete_note(state: tauri::State<'_, AppState>, id: i64) -> CommandResult<()> {
+pub fn delete_note(state: tauri::State<'_, AppState>, id: String) -> CommandResult<()> {
+    let id = crate::commands::ids::parse_id(&id)?;
     with_dek(&state, |vault, dek| {
         // Read the name before deleting: afterwards there is nothing to log.
         let name = vault
@@ -135,8 +141,9 @@ pub fn delete_note(state: tauri::State<'_, AppState>, id: i64) -> CommandResult<
 }
 
 #[tauri::command]
-pub fn duplicate_note(state: tauri::State<'_, AppState>, id: i64) -> CommandResult<i64> {
-    with_dek(&state, |vault, dek| {
+pub fn duplicate_note(state: tauri::State<'_, AppState>, id: String) -> CommandResult<String> {
+    let id = crate::commands::ids::parse_id(&id)?;
+    let new_id = with_dek(&state, |vault, dek| {
         let new_id = vault.duplicate_note(dek, id)?;
         let name = vault
             .get_note(dek, new_id)?
@@ -144,7 +151,8 @@ pub fn duplicate_note(state: tauri::State<'_, AppState>, id: i64) -> CommandResu
             .unwrap_or_default();
         vault.log_activity(dek, "note", ACTION_CREATED, &name)?;
         Ok(new_id)
-    })
+    })?;
+    Ok(new_id.to_string())
 }
 
 // --- tasks -------------------------------------------------------------------
@@ -152,6 +160,7 @@ pub fn duplicate_note(state: tauri::State<'_, AppState>, id: i64) -> CommandResu
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TaskDto {
+    #[serde(with = "crate::commands::ids::as_string")]
     pub id: i64,
     pub title: String,
     pub description: String,
@@ -202,7 +211,7 @@ pub fn list_tasks(state: tauri::State<'_, AppState>) -> CommandResult<Vec<TaskDt
 }
 
 #[tauri::command]
-pub fn create_task(state: tauri::State<'_, AppState>, input: TaskInput) -> CommandResult<i64> {
+pub fn create_task(state: tauri::State<'_, AppState>, input: TaskInput) -> CommandResult<String> {
     if input.title.trim().is_empty() {
         return Err(CommandError::new("validation", "A task needs a title."));
     }
@@ -220,16 +229,17 @@ pub fn create_task(state: tauri::State<'_, AppState>, input: TaskInput) -> Comma
             },
         )?;
         vault.log_activity(dek, "task", ACTION_CREATED, &title)?;
-        Ok(id)
+        Ok(id.to_string())
     })
 }
 
 #[tauri::command]
 pub fn update_task(
     state: tauri::State<'_, AppState>,
-    id: i64,
+    id: String,
     input: TaskInput,
 ) -> CommandResult<()> {
+    let id = crate::commands::ids::parse_id(&id)?;
     if input.title.trim().is_empty() {
         return Err(CommandError::new("validation", "A task needs a title."));
     }
@@ -255,9 +265,10 @@ pub fn update_task(
 #[tauri::command]
 pub fn set_task_status(
     state: tauri::State<'_, AppState>,
-    id: i64,
+    id: String,
     status: String,
 ) -> CommandResult<()> {
+    let id = crate::commands::ids::parse_id(&id)?;
     with_dek(&state, |vault, dek| {
         vault.set_task_status(id, &status)?;
         let name = vault
@@ -270,7 +281,8 @@ pub fn set_task_status(
 }
 
 #[tauri::command]
-pub fn delete_task(state: tauri::State<'_, AppState>, id: i64) -> CommandResult<()> {
+pub fn delete_task(state: tauri::State<'_, AppState>, id: String) -> CommandResult<()> {
+    let id = crate::commands::ids::parse_id(&id)?;
     with_dek(&state, |vault, dek| {
         let name = vault
             .get_task(dek, id)?
@@ -287,6 +299,7 @@ pub fn delete_task(state: tauri::State<'_, AppState>, id: i64) -> CommandResult<
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct IncomeDto {
+    #[serde(with = "crate::commands::ids::as_string")]
     pub id: i64,
     pub source: String,
     pub amount_minor: i64,
@@ -335,7 +348,10 @@ pub fn list_income(state: tauri::State<'_, AppState>) -> CommandResult<Vec<Incom
 }
 
 #[tauri::command]
-pub fn create_income(state: tauri::State<'_, AppState>, input: IncomeInput) -> CommandResult<i64> {
+pub fn create_income(
+    state: tauri::State<'_, AppState>,
+    input: IncomeInput,
+) -> CommandResult<String> {
     if input.source.trim().is_empty() {
         return Err(CommandError::new(
             "validation",
@@ -356,16 +372,17 @@ pub fn create_income(state: tauri::State<'_, AppState>, input: IncomeInput) -> C
             },
         )?;
         vault.log_activity(dek, "income", ACTION_CREATED, &source)?;
-        Ok(id)
+        Ok(id.to_string())
     })
 }
 
 #[tauri::command]
 pub fn update_income(
     state: tauri::State<'_, AppState>,
-    id: i64,
+    id: String,
     input: IncomeInput,
 ) -> CommandResult<()> {
+    let id = crate::commands::ids::parse_id(&id)?;
     with_dek(&state, |vault, dek| {
         let source = input.source.trim().to_string();
         vault.update_income(
@@ -386,7 +403,8 @@ pub fn update_income(
 }
 
 #[tauri::command]
-pub fn delete_income(state: tauri::State<'_, AppState>, id: i64) -> CommandResult<()> {
+pub fn delete_income(state: tauri::State<'_, AppState>, id: String) -> CommandResult<()> {
+    let id = crate::commands::ids::parse_id(&id)?;
     with_dek(&state, |vault, dek| {
         let name = vault
             .get_income(dek, id)?
@@ -403,6 +421,7 @@ pub fn delete_income(state: tauri::State<'_, AppState>, id: i64) -> CommandResul
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ActivityDto {
+    #[serde(with = "crate::commands::ids::as_string")]
     pub id: i64,
     pub entity_type: String,
     pub action: String,

@@ -9,14 +9,26 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { Icon, type IconName } from '../../components/Icon'
-import { CommandError, credentials, folders, notes } from '../../lib/ipc'
+import { NotePeek } from '../../components/NotePeek'
+import {
+  CommandError,
+  clipboard,
+  credentials,
+  folders,
+  notes,
+  type Credential,
+  type Folder,
+  type Note,
+} from '../../lib/ipc'
+import { FolderContents } from '../folders/FolderContents'
+import { CredentialDetail } from '../vault/CredentialDetail'
 import './favorites.css'
 
 type Filter = 'all' | 'folders' | 'passwords' | 'notes'
 
 interface FavoriteItem {
   key: string
-  id: number
+  id: string
   type: 'folder' | 'credential' | 'note'
   icon: IconName
   title: string
@@ -31,6 +43,18 @@ export function FavoritesPage() {
   const [items, setItems] = useState<FavoriteItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // Everything opens in place: a favourite is a shortcut to the thing, not a
+  // shortcut to the tab the thing lives in.
+  const [openFolder, setOpenFolder] = useState<Folder | null>(null)
+  const [openCredential, setOpenCredential] = useState<Credential | null>(null)
+  const [openNote, setOpenNote] = useState<Note | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+  // Kept so an opened item can be found again without another round trip.
+  const [sources, setSources] = useState<{
+    folders: Folder[]
+    credentials: Credential[]
+    notes: Note[]
+  }>({ folders: [], credentials: [], notes: [] })
 
   async function load() {
     setLoading(true)
@@ -85,6 +109,11 @@ export function FavoritesPage() {
       }
 
       setItems(collected)
+      setSources({
+        folders: [...passwordFolders, ...noteFolders],
+        credentials: creds,
+        notes: noteList,
+      })
       setError(null)
     } catch (raw) {
       if (!(raw instanceof CommandError && raw.kind === 'locked')) {
@@ -99,15 +128,47 @@ export function FavoritesPage() {
     void load()
   }, [])
 
+  useEffect(() => {
+    if (!toast) return
+    const timer = setTimeout(() => setToast(null), 4000)
+    return () => clearTimeout(timer)
+  }, [toast])
+
   const visible = useMemo(() => {
     if (filter === 'all') return items
     const want = filter === 'folders' ? 'folder' : filter === 'passwords' ? 'credential' : 'note'
     return items.filter((item) => item.type === want)
   }, [items, filter])
 
+  /** Opens the favourited thing here, rather than jumping to its tab. */
+  function openItem(item: FavoriteItem) {
+    if (item.type === 'folder') {
+      const folder = sources.folders.find((f) => f.id === item.id)
+      if (folder) setOpenFolder(folder)
+    } else if (item.type === 'credential') {
+      const credential = sources.credentials.find((c) => c.id === item.id)
+      if (credential) setOpenCredential(credential)
+    } else {
+      const note = sources.notes.find((n) => n.id === item.id)
+      if (note) setOpenNote(note)
+    }
+  }
+
   async function unstar(item: FavoriteItem) {
     await credentials.setFavorite(item.type, item.id, false)
     await load()
+  }
+
+  if (openFolder) {
+    return (
+      <div data-testid="route-favorites">
+        <FolderContents
+          folder={openFolder}
+          onBack={() => setOpenFolder(null)}
+          onChanged={load}
+        />
+      </div>
+    )
   }
 
   return (
@@ -159,7 +220,7 @@ export function FavoritesPage() {
               >
                 <Icon name={item.icon} size={15} />
               </span>
-              <button className="fav__text" onClick={() => navigate(item.route)}>
+              <button className="fav__text" onClick={() => openItem(item)}>
                 <span className="fold__name">{item.title}</span>
                 <span className="fold__items">{item.subtitle}</span>
               </button>
@@ -173,6 +234,40 @@ export function FavoritesPage() {
               </button>
             </article>
           ))}
+        </div>
+      )}
+
+      {openCredential && (
+        <CredentialDetail
+          item={openCredential}
+          onClose={() => setOpenCredential(null)}
+          onCopy={async () => {
+            try {
+              const receipt = await clipboard.copyPassword(openCredential.id)
+              setToast(
+                receipt.exclusion === 'excluded'
+                  ? 'Password copied. Clears in 30 seconds.'
+                  : 'Password copied, but Windows may keep its own copy.',
+              )
+            } catch {
+              setToast('Could not copy the password.')
+            }
+          }}
+          onEdit={() => navigate('/vault')}
+        />
+      )}
+
+      {openNote && (
+        <NotePeek
+          note={openNote}
+          onClose={() => setOpenNote(null)}
+          onOpenInNotes={() => navigate('/notes', { state: { noteId: openNote.id } })}
+        />
+      )}
+
+      {toast && (
+        <div className="toast" role="status">
+          {toast}
         </div>
       )}
     </div>

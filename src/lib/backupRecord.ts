@@ -15,6 +15,15 @@ export function recordBackup(at = Date.now()): void {
   }
 }
 
+/** Forgets the backup record. Called when the vault it described is gone. */
+export function clearBackupRecord(): void {
+  try {
+    localStorage.removeItem(KEY)
+  } catch {
+    /* Nothing to do if storage is unavailable. */
+  }
+}
+
 export function lastBackupAt(): number | null {
   try {
     const raw = localStorage.getItem(KEY)
