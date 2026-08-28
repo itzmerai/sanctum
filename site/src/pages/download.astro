@@ -60,10 +60,23 @@ const sections = [
       <p class="eyebrow">Windows 10 and 11 &middot; 64-bit</p>
       <h1>Download Sanctum</h1>
       <p class="lede">
-        Version {release.version}{published && <> &middot; published {published}</>}. Around
-        3&nbsp;MB.
-        {!release.live && (
-          <> This page could not reach GitHub, so the version shown is the one this build declares.</>
+        {release.state === 'live' && (
+          <>
+            Version {release.version}{published && <> &middot; published {published}</>}. Around
+            3&nbsp;MB.
+          </>
+        )}
+        {release.state === 'none' && (
+          <>
+            No build has been published yet. Sanctum {release.version} is finished and the source
+            is readable; the first release is still to come.
+          </>
+        )}
+        {release.state === 'unreachable' && (
+          <>
+            This page could not reach GitHub when it was built, so it cannot show the current
+            release. The releases list below is authoritative.
+          </>
         )}
       </p>
 
@@ -88,8 +101,13 @@ const sections = [
       </div>
 
       <h2 id="warning">The Windows warning</h2>
+      {release.state !== 'live' && (
+        <p>
+          Worth reading before the first release lands, because it is what you will see.
+        </p>
+      )}
       <p>
-        This installer is not code-signed. Windows SmartScreen shows
+        The installer is not code-signed. Windows SmartScreen shows
         <em>&ldquo;Windows protected your PC&rdquo;</em> and hides the Run button behind
         <em>More info</em>.
       </p>

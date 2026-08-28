@@ -84,6 +84,7 @@ describe('latestRelease', () => {
       publishedAt: '2026-09-01T10:00:00Z',
       sha256: HASH,
       live: true,
+      state: 'live',
     })
   })
 
@@ -98,7 +99,21 @@ describe('latestRelease', () => {
     )
 
     // A build must not fail because GitHub was briefly unreachable.
-    expect(info).toEqual({ version: FALLBACK, publishedAt: null, sha256: null, live: false })
+    expect(info).toEqual({
+      version: FALLBACK,
+      publishedAt: null,
+      sha256: null,
+      live: false,
+      state: 'unreachable',
+    })
+  })
+
+  it('reports no release when the API says there is none', async () => {
+    // A 404 resolves null. Reporting that as a network failure would be a lie
+    // on a page whose whole premise is honesty.
+    const info = await latestRelease(fetchers({ json: async () => null }), FALLBACK)
+    expect(info.state).toBe('none')
+    expect(info.live).toBe(false)
   })
 
   it('falls back when the release has no installer asset', async () => {

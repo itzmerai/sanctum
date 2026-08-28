@@ -28,6 +28,15 @@ export const DOWNLOAD_URL = `https://github.com/${REPO}/releases/latest/download
 /** Where to send people when no release exists yet, so nothing 404s. */
 export const RELEASES_URL = `https://github.com/${REPO}/releases`
 
+/**
+ * Why there is no live release, when there isn't one.
+ *
+ * 'unreachable' and 'none' are different facts and the page says different
+ * things about them - claiming a network failure when GitHub answered fine
+ * and simply has nothing published is a lie on a page about honesty.
+ */
+export type ReleaseState = 'live' | 'none' | 'unreachable'
+
 export interface ReleaseInfo {
   version: string
   /** ISO date, or null when the release could not be read. */
@@ -36,6 +45,7 @@ export interface ReleaseInfo {
   sha256: string | null
   /** True when this came from the API rather than the fallback. */
   live: boolean
+  state: ReleaseState
 }
 
 interface GitHubAsset {
@@ -81,29 +91,33 @@ export async function latestRelease(
   fetchers: Fetchers,
   fallbackVersion: string,
 ): Promise<ReleaseInfo> {
-  const fallback: ReleaseInfo = {
+  const fallback = (state: ReleaseState): ReleaseInfo => ({
     version: fallbackVersion,
     publishedAt: null,
     sha256: null,
     live: false,
-  }
+    state,
+  })
 
-  let release: GitHubRelease
+  let release: GitHubRelease | null
   try {
     release = (await fetchers.json(
       `https://api.github.com/repos/${REPO}/releases/latest`,
-    )) as GitHubRelease
+    )) as GitHubRelease | null
   } catch {
-    return fallback
+    // Could not ask. Distinct from asking and being told there is nothing.
+    return fallback('unreachable')
   }
 
-  if (!release || typeof release.tag_name !== 'string') return fallback
+  // A 404 resolves null: the repository simply has no releases yet.
+  if (!release) return fallback('none')
+  if (typeof release.tag_name !== 'string') return fallback('unreachable')
 
   const assets = Array.isArray(release.assets) ? release.assets : []
   const installer = assets.find((asset) => asset.name?.endsWith(INSTALLER_SUFFIX))
-  // No installer means the release is not one a visitor can download from,
-  // so trust the repo's own version rather than advertising a phantom build.
-  if (!installer) return fallback
+  // A release with no installer is not one a visitor can download from, which
+  // reads the same to them as no release at all.
+  if (!installer) return fallback('none')
 
   const checksumAsset = assets.find((asset) => /sha256sums/i.test(asset.name ?? ''))
   let sha256: string | null = null
@@ -121,6 +135,7 @@ export async function latestRelease(
     publishedAt: release.published_at ?? null,
     sha256,
     live: true,
+    state: 'live',
   }
 }
 
@@ -135,6 +150,8 @@ export function httpFetchers(token?: string | undefined): Fetchers {
   return {
     json: async (url) => {
       const response = await fetch(url, { headers })
+      // A 404 is an answer, not a failure: it means nothing is published.
+      if (response.status === 404) return null
       if (!response.ok) throw new Error(`${response.status} from ${url}`)
       return response.json()
     },
