@@ -12,6 +12,7 @@
 //! documented fallback if hiding that ever becomes a requirement.
 
 mod activity;
+mod env_files;
 mod folders;
 mod header;
 mod income;
@@ -24,7 +25,8 @@ mod store;
 mod tasks;
 
 pub use activity::{ActivityEntry, ACTION_CREATED, ACTION_DELETED, ACTION_UPDATED};
-pub use folders::{Folder, KIND_NOTES, KIND_PASSWORDS};
+pub use env_files::{EnvFile, NewEnvFile, ENV_LOCAL, ENV_PRODUCTION, ENV_STAGING};
+pub use folders::{Folder, KIND_ENV, KIND_NOTES, KIND_PASSWORDS};
 pub use header::VaultHeader;
 pub use income::{Income, NewIncome};
 pub use lifecycle::{

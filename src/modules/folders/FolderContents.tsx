@@ -15,15 +15,20 @@ import {
   CommandError,
   clipboard,
   credentials,
+  envFiles,
   notes,
   type Credential,
+  type EnvFile,
   type Folder,
   type Note,
 } from '../../lib/ipc'
+import { parseEnv } from '../../lib/envParse'
+import { EnvFileDetail } from '../envfiles/EnvFileDetail'
 import { CredentialDetail } from '../vault/CredentialDetail'
 import { CredentialForm } from '../vault/CredentialForm'
 import { CredentialRow } from '../vault/CredentialRow'
 import '../vault/vault.css'
+import '../envfiles/envfiles.css'
 
 interface Props {
   folder: Folder
@@ -35,9 +40,12 @@ interface Props {
 export function FolderContents({ folder, onBack, onChanged }: Props) {
   const navigate = useNavigate()
   const isNotes = folder.kind === 'notes'
+  const isEnv = folder.kind === 'env'
 
   const [creds, setCreds] = useState<Credential[]>([])
   const [noteList, setNoteList] = useState<Note[]>([])
+  const [envList, setEnvList] = useState<EnvFile[]>([])
+  const [envPeek, setEnvPeek] = useState<EnvFile | null>(null)
   const [loading, setLoading] = useState(true)
   const [detail, setDetail] = useState<Credential | null>(null)
   const [editing, setEditing] = useState<Credential | null>(null)
@@ -48,7 +56,10 @@ export function FolderContents({ folder, onBack, onChanged }: Props) {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      if (isNotes) {
+      if (isEnv) {
+        const all = await envFiles.list()
+        setEnvList(all.filter((file) => file.folderId === folder.id))
+      } else if (isNotes) {
         const all = await notes.list()
         setNoteList(all.filter((note) => note.folderId === folder.id))
       } else {
@@ -63,7 +74,7 @@ export function FolderContents({ folder, onBack, onChanged }: Props) {
     } finally {
       setLoading(false)
     }
-  }, [folder.id, isNotes])
+  }, [folder.id, isNotes, isEnv])
 
   useEffect(() => {
     void load()
@@ -93,7 +104,8 @@ export function FolderContents({ folder, onBack, onChanged }: Props) {
     }
   }
 
-  const empty = isNotes ? noteList.length === 0 : creds.length === 0
+  const count = isEnv ? envList.length : isNotes ? noteList.length : creds.length
+  const empty = count === 0
 
   return (
     <div>
@@ -109,9 +121,8 @@ export function FolderContents({ folder, onBack, onChanged }: Props) {
           <div>
             <h1 className="page__title">{folder.name}</h1>
             <p className="page__sub">
-              {isNotes ? 'Notes' : 'Passwords'} &middot;{' '}
-              {isNotes ? noteList.length : creds.length} item
-              {(isNotes ? noteList.length : creds.length) === 1 ? '' : 's'}
+              {isEnv ? 'Env files' : isNotes ? 'Notes' : 'Passwords'} &middot; {count} item
+              {count === 1 ? '' : 's'}
             </p>
           </div>
         </div>
@@ -128,6 +139,33 @@ export function FolderContents({ folder, onBack, onChanged }: Props) {
           <Icon name={isNotes ? 'note' : 'key'} size={22} />
           <p>Nothing filed in {folder.name} yet.</p>
         </div>
+      ) : isEnv ? (
+        // Read-only here: editing and deleting belong to the Env Files module,
+        // so a folder cannot become a second place that owns the record.
+        envPeek ? (
+          <div>
+            <button className="foldc__back" onClick={() => setEnvPeek(null)}>
+              <Icon name="chevron-down" size={14} className="foldc__backIcon" />
+              {folder.name}
+            </button>
+            <EnvFileDetail file={envPeek} />
+          </div>
+        ) : (
+          <div className="card vault__list">
+            {envList.map((file) => (
+              <div className="row" key={file.id}>
+                <button className="row__main" onClick={() => setEnvPeek(file)}>
+                  <span className="row__text">
+                    <span className="row__name">{file.title}</span>
+                    <span className="row__note">
+                      {parseEnv(file.content).keyCount} keys &middot; {file.environment}
+                    </span>
+                  </span>
+                </button>
+              </div>
+            ))}
+          </div>
+        )
       ) : isNotes ? (
         <div className="card vault__list">
           {noteList.map((note) => (

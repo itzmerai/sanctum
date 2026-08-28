@@ -16,6 +16,7 @@ use super::{Result, Vault, VaultError};
 /// Which side of the Folders screen a folder belongs to.
 pub const KIND_PASSWORDS: &str = "passwords";
 pub const KIND_NOTES: &str = "notes";
+pub const KIND_ENV: &str = "env";
 
 const COL_FOLDER_NAME: &str = "folder.name";
 
@@ -58,10 +59,10 @@ impl Vault {
     /// which is why `folder_id` is one of the columns left in plaintext.
     pub fn list_folders(&self, dek: &SymmetricKey, kind: &str) -> Result<Vec<Folder>> {
         validate_kind(kind)?;
-        let child_table = if kind == KIND_NOTES {
-            "notes"
-        } else {
-            "credentials"
+        let child_table = match kind {
+            KIND_NOTES => "notes",
+            KIND_ENV => "env_files",
+            _ => "credentials",
         };
 
         let sql = format!(
@@ -186,7 +187,7 @@ impl Vault {
 }
 
 fn validate_kind(kind: &str) -> Result<()> {
-    if kind == KIND_PASSWORDS || kind == KIND_NOTES {
+    if kind == KIND_PASSWORDS || kind == KIND_NOTES || kind == KIND_ENV {
         Ok(())
     } else {
         Err(VaultError::Corrupt(format!(

@@ -8,6 +8,7 @@ import { FoldersPage } from './modules/folders/FoldersPage'
 import { GeneratorPage } from './modules/generator/GeneratorPage'
 import { IncomePage } from './modules/income/IncomePage'
 import { NotesPage } from './modules/notes/NotesPage'
+import { EnvFilesPage } from './modules/envfiles/EnvFilesPage'
 import { SettingsPage } from './modules/settings/SettingsPage'
 import { TasksPage } from './modules/tasks/TasksPage'
 import { UnlockWindow } from './modules/unlock/UnlockWindow'
@@ -46,6 +47,7 @@ export function AppRoutes() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/vault" element={<VaultPage />} />
         <Route path="/notes" element={<NotesPage />} />
+        <Route path="/env" element={<EnvFilesPage />} />
         <Route path="/tasks" element={<TasksPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/income" element={<IncomePage />} />

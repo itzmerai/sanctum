@@ -13,7 +13,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 
-import { CommandError, credentials, folders, income, notes, tasks } from '../lib/ipc'
+import { CommandError, credentials, envFiles, folders, income, notes, tasks } from '../lib/ipc'
 import { Icon, type IconName } from './Icon'
 import './palette.css'
 
@@ -67,12 +67,13 @@ export function CommandPalette({ open, onClose }: Props) {
 
     async function load() {
       try {
-        const [creds, noteList, taskList, incomeList, pwFolders, noteFolders] =
+        const [creds, noteList, taskList, incomeList, envList, pwFolders, noteFolders] =
           await Promise.all([
             credentials.list(),
             notes.list(),
             tasks.list(),
             income.list(),
+            envFiles.list(),
             folders.list('passwords'),
             folders.list('notes'),
           ])
@@ -108,6 +109,13 @@ export function CommandPalette({ open, onClose }: Props) {
             title: item.source,
             subtitle: [item.category, item.remarks].filter(Boolean).join(' · '),
             route: '/income',
+          })),
+          ...envList.map((item) => ({
+            key: `env-${item.id}`,
+            icon: 'key' as IconName,
+            title: item.title,
+            subtitle: `${item.environment} env file`,
+            route: '/env',
           })),
           ...[...pwFolders, ...noteFolders].map((item) => ({
             key: `folder-${item.id}`,

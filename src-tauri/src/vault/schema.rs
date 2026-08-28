@@ -146,6 +146,83 @@ pub const MIGRATIONS: &[&str] = &[
     UPDATE favorites   SET created_at = created_at * 1000;
     UPDATE activity    SET created_at = created_at * 1000;
     "#,
+    // --- M4: env files ------------------------------------------------------
+    //
+    // Two existing tables carry a CHECK constraint that has to admit a new
+    // value, and SQLite cannot alter a CHECK in place -- each table must be
+    // rebuilt.
+    //
+    // `favorites` is rebuilt the obvious way: nothing references it, so the
+    // drop fires no foreign key action.
+    //
+    // `folders` cannot be. `credentials` and `notes` reference it with
+    // ON DELETE SET NULL, and with foreign keys enabled a DROP performs an
+    // implicit DELETE FROM first -- which fires that action and silently nulls
+    // out every folder assignment in the vault. `PRAGMA foreign_keys` is a
+    // no-op inside a transaction (which is where migrations run), and
+    // `legacy_alter_table` does not survive one either, so neither pragma is a
+    // way out.
+    //
+    // So the assignments are carried across the rebuild by hand: saved before
+    // the drop, restored after the new table is in place. Explicit beats
+    // clever here -- the behaviour does not depend on a pragma holding inside
+    // a transaction. `a_migration_to_env_files_keeps_folder_assignments` is
+    // the regression test.
+    r#"
+    CREATE TABLE favorites_m4 (
+        entity_type TEXT    NOT NULL CHECK (entity_type IN ('credential', 'note', 'folder', 'env_file')),
+        entity_id   INTEGER NOT NULL,
+        created_at  INTEGER NOT NULL,
+        PRIMARY KEY (entity_type, entity_id)
+    );
+    INSERT INTO favorites_m4 (entity_type, entity_id, created_at)
+        SELECT entity_type, entity_id, created_at FROM favorites;
+    DROP TABLE favorites;
+    ALTER TABLE favorites_m4 RENAME TO favorites;
+
+    CREATE TABLE folders_m4 AS
+        SELECT id, kind, name_enc, color, created_at, updated_at FROM folders;
+    CREATE TABLE credential_folders_m4 AS
+        SELECT id, folder_id FROM credentials WHERE folder_id IS NOT NULL;
+    CREATE TABLE note_folders_m4 AS
+        SELECT id, folder_id FROM notes WHERE folder_id IS NOT NULL;
+
+    DROP TABLE folders;
+
+    CREATE TABLE folders (
+        id         INTEGER PRIMARY KEY,
+        kind       TEXT    NOT NULL CHECK (kind IN ('passwords', 'notes', 'env')),
+        name_enc   BLOB    NOT NULL,
+        color      TEXT    NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+    );
+    INSERT INTO folders (id, kind, name_enc, color, created_at, updated_at)
+        SELECT id, kind, name_enc, color, created_at, updated_at FROM folders_m4;
+
+    UPDATE credentials
+        SET folder_id = (SELECT s.folder_id FROM credential_folders_m4 s WHERE s.id = credentials.id)
+        WHERE id IN (SELECT id FROM credential_folders_m4);
+    UPDATE notes
+        SET folder_id = (SELECT s.folder_id FROM note_folders_m4 s WHERE s.id = notes.id)
+        WHERE id IN (SELECT id FROM note_folders_m4);
+
+    DROP TABLE folders_m4;
+    DROP TABLE credential_folders_m4;
+    DROP TABLE note_folders_m4;
+
+    CREATE TABLE env_files (
+        id          INTEGER PRIMARY KEY,
+        title_enc   BLOB    NOT NULL,
+        content_enc BLOB    NOT NULL,
+        environment TEXT    NOT NULL CHECK (environment IN ('production', 'staging', 'local')),
+        folder_id   INTEGER REFERENCES folders(id) ON DELETE SET NULL,
+        created_at  INTEGER NOT NULL,
+        updated_at  INTEGER NOT NULL
+    );
+    CREATE INDEX idx_env_files_folder ON env_files(folder_id);
+    CREATE INDEX idx_env_files_environment ON env_files(environment);
+    "#,
 ];
 
 /// Schema version a fresh vault is created at.

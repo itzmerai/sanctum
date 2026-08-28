@@ -8,8 +8,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::vault::{
-    ActivityEntry, Income, NewIncome, NewNote, NewTask, Note, Task, ACTION_CREATED, ACTION_DELETED,
-    ACTION_UPDATED,
+    ActivityEntry, EnvFile, Income, NewEnvFile, NewIncome, NewNote, NewTask, Note, Task,
+    ACTION_CREATED, ACTION_DELETED, ACTION_UPDATED,
 };
 
 use super::{with_dek, AppState, CommandError, CommandResult};
@@ -465,6 +465,7 @@ pub fn clear_activity(state: tauri::State<'_, AppState>) -> CommandResult<usize>
 pub struct VaultSummary {
     pub credentials: i64,
     pub notes: i64,
+    pub env_files: i64,
     pub open_tasks: i64,
     pub overdue_tasks: i64,
     pub income_this_month_minor: i64,
@@ -485,10 +486,142 @@ pub fn vault_summary(
         Ok(VaultSummary {
             credentials: vault.credential_count()?,
             notes: vault.note_count()?,
+            env_files: vault.env_file_count()?,
             open_tasks,
             overdue_tasks,
             income_this_month_minor: vault.income_total(dek, month_start, month_end)?,
             income_all_time_minor: vault.income_total(dek, i64::MIN, i64::MAX)?,
         })
+    })
+}
+
+// --- env files ---------------------------------------------------------------
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EnvFileDto {
+    #[serde(with = "crate::commands::ids::as_string")]
+    pub id: i64,
+    pub title: String,
+    /// The raw file text, exactly as saved.
+    pub content: String,
+    pub environment: String,
+    #[serde(with = "crate::commands::ids::as_string_opt")]
+    pub folder_id: Option<i64>,
+    pub favorite: bool,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+impl EnvFileDto {
+    fn from_record(record: EnvFile, favorite: bool) -> Self {
+        Self {
+            id: record.id,
+            title: record.title,
+            content: record.content,
+            environment: record.environment,
+            folder_id: record.folder_id,
+            favorite,
+            created_at: record.created_at,
+            updated_at: record.updated_at,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EnvFileInput {
+    pub title: String,
+    pub content: String,
+    pub environment: String,
+    #[serde(with = "crate::commands::ids::as_string_opt")]
+    pub folder_id: Option<i64>,
+}
+
+/// Normalises the project title without rejecting a blank one, matching how
+/// notes behave. The *content* is never touched -- see `vault::env_files`.
+fn env_file_title(title: &str) -> String {
+    let trimmed = title.trim();
+    if trimmed.is_empty() {
+        "Untitled env file".to_string()
+    } else {
+        trimmed.to_string()
+    }
+}
+
+#[tauri::command]
+pub fn list_env_files(state: tauri::State<'_, AppState>) -> CommandResult<Vec<EnvFileDto>> {
+    with_dek(&state, |vault, dek| {
+        let favorites = vault.favorite_ids("env_file")?;
+        Ok(vault
+            .list_env_files(dek)?
+            .into_iter()
+            .map(|record| {
+                let favorite = favorites.contains(&record.id);
+                EnvFileDto::from_record(record, favorite)
+            })
+            .collect())
+    })
+}
+
+#[tauri::command]
+pub fn create_env_file(
+    state: tauri::State<'_, AppState>,
+    input: EnvFileInput,
+) -> CommandResult<String> {
+    let id = with_dek(&state, |vault, dek| {
+        let title = env_file_title(&input.title);
+        let id = vault.insert_env_file(
+            dek,
+            &NewEnvFile {
+                title: title.clone(),
+                content: input.content,
+                environment: input.environment,
+                folder_id: input.folder_id,
+            },
+        )?;
+        // The subject is the project title. The file's contents never reach
+        // the activity log.
+        vault.log_activity(dek, "env_file", ACTION_CREATED, &title)?;
+        Ok(id)
+    })?;
+    Ok(id.to_string())
+}
+
+#[tauri::command]
+pub fn update_env_file(
+    state: tauri::State<'_, AppState>,
+    id: String,
+    input: EnvFileInput,
+) -> CommandResult<()> {
+    let id = crate::commands::ids::parse_id(&id)?;
+    with_dek(&state, |vault, dek| {
+        let title = env_file_title(&input.title);
+        vault.update_env_file(
+            dek,
+            id,
+            &NewEnvFile {
+                title: title.clone(),
+                content: input.content,
+                environment: input.environment,
+                folder_id: input.folder_id,
+            },
+        )?;
+        vault.log_activity(dek, "env_file", ACTION_UPDATED, &title)?;
+        Ok(())
+    })
+}
+
+#[tauri::command]
+pub fn delete_env_file(state: tauri::State<'_, AppState>, id: String) -> CommandResult<()> {
+    let id = crate::commands::ids::parse_id(&id)?;
+    with_dek(&state, |vault, dek| {
+        let name = vault
+            .get_env_file(dek, id)?
+            .map(|record| record.title)
+            .unwrap_or_default();
+        vault.delete_env_file(id)?;
+        vault.log_activity(dek, "env_file", ACTION_DELETED, &name)?;
+        Ok(())
     })
 }

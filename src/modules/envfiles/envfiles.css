@@ -1,0 +1,243 @@
+/* Env Files (U5, U6). Shared module styling comes from ../modules.css; only
+   what this module genuinely adds lives here. */
+@import '../modules.css';
+
+.envpage__body {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) 1fr;
+  gap: var(--sp-4);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .envpage__body {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- list ---------------------------------------------------------------- */
+
+.envlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.envlist__empty {
+  color: var(--text-faint);
+  font-size: var(--fs-meta);
+  padding: var(--sp-4);
+}
+
+.envlist__row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px var(--sp-2);
+  padding: var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  background: var(--bg-panel);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.envlist__row:hover {
+  background: var(--bg-hover);
+}
+
+.envlist__row[data-active='true'] {
+  border-color: var(--accent);
+}
+
+.envlist__name {
+  font-size: var(--fs-item);
+}
+
+.envlist__meta {
+  grid-column: 1;
+  color: var(--text-faint);
+  font-size: var(--fs-meta);
+}
+
+.envlist__row .chip {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+}
+
+/* Environment reads at a glance, but stays inside the accent-neutral palette
+   so the three do not compete with the app's own accent colour. */
+.chip--production {
+  border-color: var(--danger, var(--border));
+}
+
+.chip--staging {
+  border-color: var(--warning, var(--border));
+}
+
+/* --- detail -------------------------------------------------------------- */
+
+.envdetail {
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  background: var(--bg-panel);
+  padding: var(--sp-4);
+}
+
+.envdetail__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-4);
+}
+
+.envdetail__title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.envdetail__title h2 {
+  margin: 0;
+  font-size: var(--fs-section);
+}
+
+.envdetail__actions {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.envdetail__notice {
+  color: var(--text-dim);
+  font-size: var(--fs-meta);
+  margin: 0 0 var(--sp-3);
+}
+
+.envdetail__raw {
+  margin: 0;
+  padding: var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-input);
+  background: var(--bg-sunken, var(--bg-app));
+  font-size: var(--fs-meta);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 420px;
+  overflow: auto;
+}
+
+/* --- key rows ------------------------------------------------------------ */
+
+.envrows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.envrow {
+  display: grid;
+  grid-template-columns: minmax(120px, 240px) 1fr auto auto;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-1);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--fs-meta);
+}
+
+.envrow:last-child {
+  border-bottom: none;
+}
+
+.envrow--opaque {
+  grid-template-columns: 1fr;
+}
+
+.envrow__opaque {
+  color: var(--text-faint);
+  white-space: pre-wrap;
+  min-height: 1em;
+}
+
+.envrow__key {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+/* A revealed value can be a multi-line private key, so it wraps rather than
+   pushing the copy controls off the row. */
+.envrow__value {
+  color: var(--text-dim);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.envrow__value[data-revealed='false'] {
+  letter-spacing: 0.12em;
+}
+
+.envrow__btn {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid transparent;
+  border-radius: var(--r-icon);
+  background: none;
+  color: var(--text-faint);
+  cursor: pointer;
+}
+
+.envrow__btn:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+/* --- form ---------------------------------------------------------------- */
+
+.envform__area {
+  min-height: 220px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  line-height: 1.55;
+  resize: vertical;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+}
+
+.field--row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+}
+
+.label--withAction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

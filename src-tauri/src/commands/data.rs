@@ -129,3 +129,37 @@ pub async fn reset_vault(state: tauri::State<'_, AppState>) -> CommandResult<()>
     *vault = crate::vault::Vault::open(&state.vault_path)?;
     Ok(())
 }
+
+/// A `.env` is text a human wrote; anything this large is not one, and reading
+/// it would only succeed in wedging the editor.
+const MAX_ENV_IMPORT_BYTES: u64 = 1024 * 1024;
+
+/// Reads a `.env` the user picked, so the file's text can be dropped into the
+/// editor (R5).
+///
+/// Rust does the reading for the same reason backup restore does: the frontend
+/// receives a path from the native dialog and never gains filesystem access of
+/// its own. The WebView cannot name a path the user did not choose.
+#[tauri::command]
+pub fn read_env_text(source: PathBuf) -> CommandResult<String> {
+    let size = std::fs::metadata(&source)
+        .map_err(|e| CommandError::new("io", e.to_string()))?
+        .len();
+    if size > MAX_ENV_IMPORT_BYTES {
+        return Err(CommandError::new(
+            "tooLarge",
+            "That file is larger than 1 MB, so it is not an env file.",
+        ));
+    }
+
+    let bytes = std::fs::read(&source).map_err(|e| CommandError::new("io", e.to_string()))?;
+
+    // Refuse binary rather than storing replacement characters: a lossy
+    // conversion would be saved and later pasted back as corrupted text.
+    String::from_utf8(bytes).map_err(|_| {
+        CommandError::new(
+            "notText",
+            "That file is not valid UTF-8 text, so it cannot be an env file.",
+        )
+    })
+}
