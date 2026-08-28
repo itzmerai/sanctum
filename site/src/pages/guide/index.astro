@@ -1,0 +1,24 @@
+---
+import Base from '../../layouts/Base.astro'
+const base = import.meta.env.BASE_URL
+const guides = [
+  ['first-run/', 'First run', 'Create the vault, choose a passphrase, and save the recovery code.'],
+  ['credentials/', 'Saving a credential', 'Add a login, reveal it, and copy the password safely.'],
+  ['env-files/', 'Storing a .env', 'Import a file, keep it byte for byte, copy one key or all of it.'],
+  ['backups/', 'Backups', 'Take an encrypted backup and prove you can restore it.'],
+]
+---
+<Base title="Sanctum guide" description="How to set up Sanctum and use it day to day.">
+  <section class="section wrap" style="border-top: none;">
+    <h2>Guide</h2>
+    <p>Four things worth knowing, in the order you will need them.</p>
+    <div class="grid">
+      {guides.map(([href, title, detail]) => (
+        <a class="tile" href={`${base}guide/${href}`} style="text-decoration: none;">
+          <h3>{title}</h3>
+          <p>{detail}</p>
+        </a>
+      ))}
+    </div>
+  </section>
+</Base>

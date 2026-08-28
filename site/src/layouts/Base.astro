@@ -1,0 +1,71 @@
+---
+/**
+ * The document shell (U5).
+ *
+ * Owns the head, which is where the case for Astro actually lives: these meta
+ * tags are in the served HTML, so a link pasted into Slack renders a real card
+ * rather than the empty one a client-rendered page produces (AE1).
+ */
+import '../styles/app-tokens.css'
+import '../styles/site.css'
+import '../components/app/replica.css'
+
+interface Props {
+  title: string
+  description: string
+}
+
+const { title, description } = Astro.props
+const url = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname
+const nav = [
+  { href: 'guide/', label: 'Guide' },
+  { href: 'download/', label: 'Download' },
+]
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark" data-accent="slate" data-size="medium">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={url} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={url} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <meta name="color-scheme" content="dark light" />
+  </head>
+
+  <body>
+    <header class="siteHeader">
+      <a class="siteHeader__brand" href={import.meta.env.BASE_URL}>
+        <span class="siteHeader__mark"></span>
+        Sanctum
+      </a>
+      <nav class="siteHeader__nav">
+        {nav.map((item) => <a href={`${import.meta.env.BASE_URL}${item.href}`}>{item.label}</a>)}
+        <a href="https://github.com/itzmerai/sanctum">Source</a>
+      </nav>
+    </header>
+
+    <slot />
+
+    <footer class="siteFooter">
+      <p>
+        Sanctum is an offline vault for Windows. It is version 0.1.0, has not been independently
+        audited, and its installers are not yet code-signed.
+      </p>
+      <p class="siteFooter__legal">
+        Copyright &copy; 2026 Sanctum. All rights reserved. The source is published for
+        inspection; it is not open source.
+      </p>
+    </footer>
+  </body>
+</html>

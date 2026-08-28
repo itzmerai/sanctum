@@ -1,0 +1,40 @@
+---
+import Base from '../../layouts/Base.astro'
+import Steps from '../../components/Steps.astro'
+---
+<Base title="Backups - Sanctum guide" description="Take an encrypted backup of your vault, and prove you can restore it before you need to.">
+  <section class="section wrap" style="border-top: none;">
+    <h2>Backups</h2>
+    <p>
+      Your vault exists on one machine. A failed drive is the ordinary way to lose it, and there is
+      no copy anywhere else unless you make one.
+    </p>
+    <Steps steps={[
+      'Open <strong>Settings</strong>, then <strong>Data</strong>.',
+      'Click <strong>Create backup</strong> and choose where to save the <code>.sanctumbak</code> file.',
+      'Give the backup its own password. It can differ from your vault passphrase, and it is what protects the file.',
+      'Copy the file somewhere off this machine &mdash; another drive, or storage you trust.',
+    ]} />
+  </section>
+
+  <section class="section wrap">
+    <h2>Prove the restore works</h2>
+    <p>
+      An untested backup is a guess. The only way to know is to restore one, and the only safe time
+      to find out is before you need it.
+    </p>
+    <p>
+      Restoring replaces the current vault entirely, so do it deliberately &mdash; ideally right
+      after a fresh backup, when losing the current state costs nothing.
+    </p>
+  </section>
+
+  <section class="section wrap">
+    <h2>What is in the file</h2>
+    <p>
+      The whole encrypted database, sealed again under the backup password. Someone holding the file
+      without that password gets nothing, and a file that has been altered is refused rather than
+      partly trusted.
+    </p>
+  </section>
+</Base>

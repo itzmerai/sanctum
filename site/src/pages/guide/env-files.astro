@@ -1,0 +1,45 @@
+---
+import Base from '../../layouts/Base.astro'
+import Steps from '../../components/Steps.astro'
+import { EnvReplica } from '../../components/app/Replicas'
+---
+<Base title="Storing a .env - Sanctum guide" description="Import a .env file, keep it byte for byte, and copy one key or the whole file.">
+  <section class="section wrap" style="border-top: none;">
+    <h2>Storing a .env</h2>
+    <p>One record per project and environment. Production, staging and local for the same client sit together in the list.</p>
+    <Steps steps={[
+      'Open <strong>Env Files</strong> and click <strong>+</strong>.',
+      'Name it after the project, and pick the environment.',
+      'Click <strong>Import .env</strong> and choose the file, or paste the contents in directly.',
+      'Save. What you saved is stored exactly as written.',
+    ]} />
+    <EnvReplica />
+  </section>
+
+  <section class="section wrap">
+    <h2>Why byte for byte matters</h2>
+    <p>
+      Sanctum stores the raw file text and only parses it to decide what to show you. Comments,
+      blank lines, quoting style and key order all survive, so pasting the file back into a fresh
+      checkout gives you the file you saved &mdash; not something that resembles it.
+    </p>
+    <p>
+      A store that kept parsed key-value pairs would silently drop your
+      <code># rotated 2026-03</code> notes and reorder the rest. It would still &ldquo;work&rdquo;,
+      which is what makes that failure mode nasty.
+    </p>
+  </section>
+
+  <section class="section wrap">
+    <h2>Copying</h2>
+    <p>
+      Values are masked until you reveal them, one key at a time. Copy a single value when a client
+      rotates one key, or copy the whole file when you are setting up a machine. Both go through the
+      same guarded clipboard the Vault uses.
+    </p>
+    <p>
+      A file that will not parse &mdash; anything not <code>KEY=value</code> shaped &mdash; is still
+      shown and still copies in full. The parser never decides what gets stored.
+    </p>
+  </section>
+</Base>

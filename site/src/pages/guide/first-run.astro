@@ -1,0 +1,57 @@
+---
+/**
+ * First run (U7: R8, R9).
+ *
+ * The recovery code section is the important one. Sanctum genuinely cannot
+ * recover a lost passphrase, and a guide that soft-pedals that leaves people
+ * to discover it at the worst possible moment.
+ */
+import Base from '../../layouts/Base.astro'
+import Steps from '../../components/Steps.astro'
+---
+
+<Base
+  title="First run - Sanctum guide"
+  description="Create your vault, choose a passphrase, and save the recovery code that is shown only once."
+>
+  <section class="section wrap" style="border-top: none;">
+    <h2>First run</h2>
+    <p>Setting up takes about a minute. One step of it cannot be undone later.</p>
+
+    <Steps steps={[
+      'Run the installer and open Sanctum. There is no account to create and nothing to sign in to.',
+      'Choose a passphrase. Sanctum requires a strength score of at least 3 and twelve characters &mdash; a few unrelated words beat a short scramble, and are easier to type twice a day.',
+      'Wait a moment on first launch. Sanctum calibrates its key derivation to your machine, aiming for about three quarters of a second per unlock. A slower machine gets easier settings so unlocking stays usable; a faster one gets harder settings for free.',
+      '<strong>Write down the recovery code.</strong> It is six groups of five characters, shown once, and it is the only other way into your vault.',
+      'Confirm you have saved it. Sanctum will not show it again.',
+    ]} />
+  </section>
+
+  <section class="section wrap">
+    <h2>What the recovery code actually does</h2>
+    <p>
+      Your passphrase does not unlock records directly. It unwraps a key, and that key decrypts
+      your data. The recovery code unwraps a second copy of the same key &mdash; which is why it
+      can let you back in after a forgotten passphrase, and why it is exactly as sensitive as the
+      passphrase itself.
+    </p>
+    <p>
+      Keep it somewhere separate from the machine running Sanctum. A password manager you already
+      trust, a printed copy in a drawer, a safe. Not a note on the same desktop.
+    </p>
+  </section>
+
+  <section class="section wrap">
+    <h2>If you lose both</h2>
+    <p>
+      The data is gone. There is no reset link, no support address that can help, and no backdoor
+      &mdash; the key is derived from your passphrase and nothing else stores it. That is what makes
+      the vault worth using, and it is a real risk you are accepting.
+    </p>
+    <p>
+      The practical answer is a backup: an encrypted <code>.sanctumbak</code> file with its own
+      password, kept somewhere else. If the passphrase goes, the backup and its password are what
+      is left.
+    </p>
+  </section>
+</Base>

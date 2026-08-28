@@ -1,0 +1,8 @@
+---
+/** A numbered sequence for the guides (U7). */
+interface Props { steps: string[] }
+const { steps } = Astro.props
+---
+<ol class="plainList">
+  {steps.map((step) => <li set:html={step} />)}
+</ol>

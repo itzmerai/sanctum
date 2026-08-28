@@ -1,0 +1,230 @@
+/* The site's own layer (U5). Everything resolves from the app's tokens, so
+   the page a visitor reads is rendered in the product's design language. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-app);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+.wrap {
+  width: min(1080px, 100% - 2.5rem);
+  margin-inline: auto;
+}
+
+/* --- header / footer ----------------------------------------------------- */
+
+.siteHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  width: min(1080px, 100% - 2.5rem);
+  margin: 0 auto;
+  padding: var(--sp-5) 0;
+}
+
+.siteHeader__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-mono);
+  text-decoration: none;
+}
+
+.siteHeader__mark {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--r-icon);
+  background: var(--accent);
+}
+
+.siteHeader__nav {
+  display: flex;
+  gap: var(--sp-5);
+  font-family: var(--font-mono);
+  font-size: var(--fs-body);
+}
+
+.siteHeader__nav a {
+  color: var(--text-dim);
+  text-decoration: none;
+}
+
+.siteHeader__nav a:hover {
+  color: var(--text);
+}
+
+.siteFooter {
+  width: min(1080px, 100% - 2.5rem);
+  margin: var(--sp-8) auto;
+  padding-top: var(--sp-5);
+  border-top: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: var(--fs-body);
+}
+
+.siteFooter__legal {
+  color: var(--text-faint);
+  font-size: var(--fs-meta);
+}
+
+/* --- hero ---------------------------------------------------------------- */
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: var(--sp-8);
+  align-items: center;
+  padding: var(--sp-8) 0;
+}
+
+.hero h1 {
+  margin: 0 0 var(--sp-4);
+  font-family: var(--font-mono);
+  font-size: clamp(1.9rem, 4vw, 2.9rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.hero p {
+  margin: 0 0 var(--sp-5);
+  color: var(--text-dim);
+  font-size: 1.05rem;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  align-items: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: var(--control-h);
+  padding: 0 var(--sp-5);
+  border: 1px solid var(--border);
+  border-radius: var(--r-btn);
+  background: var(--bg-surface);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-body);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-on, var(--bg-app));
+}
+
+.btn:hover {
+  border-color: var(--border-strong);
+}
+
+.themeToggle {
+  height: var(--control-h);
+  padding: 0 var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: var(--r-btn);
+  background: transparent;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  cursor: pointer;
+}
+
+/* --- sections ------------------------------------------------------------ */
+
+.section {
+  padding: var(--sp-8) 0;
+  border-top: 1px solid var(--border);
+}
+
+.section h2 {
+  margin: 0 0 var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+}
+
+.section > p {
+  margin: 0 0 var(--sp-6);
+  max-width: 62ch;
+  color: var(--text-dim);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--sp-4);
+}
+
+.tile {
+  padding: var(--sp-5);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  background: var(--bg-surface);
+}
+
+.tile h3 {
+  margin: 0 0 var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-section);
+}
+
+.tile p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: var(--fs-body);
+}
+
+/* Limits carry the same visual weight as the primitives beside them. Putting
+   them in a quieter box would be the dishonesty this page exists to avoid. */
+.twoUp {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--sp-4);
+}
+
+.plainList {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--text-dim);
+  font-size: var(--fs-body);
+}
+
+.plainList li {
+  margin-bottom: var(--sp-2);
+}
+
+.showcase {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--sp-5);
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: var(--sp-5);
+  }
+}

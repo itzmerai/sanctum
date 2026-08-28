@@ -1,0 +1,115 @@
+---
+/**
+ * The download page (U6: R10-R14).
+ *
+ * The SmartScreen warning is stated up front, at full weight, with the reason
+ * and the steps. Burying it would get more installs and fewer informed ones,
+ * and the people this is for are exactly the people who heed that warning.
+ */
+import { readFileSync } from 'node:fs'
+
+import Base from '../layouts/Base.astro'
+import { DOWNLOAD_URL, httpFetchers, latestRelease } from '../lib/release'
+
+// The app's own declared version is the fallback when the API is unreachable.
+const conf = JSON.parse(readFileSync(new URL('../../../src-tauri/tauri.conf.json', import.meta.url), 'utf8'))
+const release = await latestRelease(httpFetchers(process.env.GITHUB_TOKEN), conf.version)
+
+const published = release.publishedAt
+  ? new Date(release.publishedAt).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  : null
+---
+
+<Base
+  title="Download Sanctum for Windows"
+  description="Sanctum for Windows 10 and 11. Verify the checksum before you install, and read why Windows will warn you."
+>
+  <section class="section wrap" style="border-top: none;">
+    <h2>Download</h2>
+    <p>
+      Sanctum {release.version} for Windows 10 and 11, 64-bit.
+      {published && <> Published {published}.</>}
+      {!release.live && (
+        <> This page could not reach GitHub, so the version shown is the one this build declares.</>
+      )}
+    </p>
+
+    <a class="btn btn--primary" href={DOWNLOAD_URL} rel="noopener">
+      Download Sanctum {release.version}
+    </a>
+
+    <div class="twoUp" style="margin-top: var(--sp-6);">
+      <article class="tile">
+        <h3>Windows will warn you. Here is why.</h3>
+        <p>
+          This installer is not code-signed. Windows SmartScreen shows
+          <em> &ldquo;Windows protected your PC&rdquo;</em> and hides the Run button behind
+          <em> More info</em>. That warning is not a false alarm &mdash; it is Windows telling you
+          truthfully that it cannot identify the publisher.
+        </p>
+        <p>
+          A certificate costs a few hundred dollars a year and Sanctum does not have one yet. Until
+          it does, the checksum below is how you verify what you downloaded is what was built.
+        </p>
+        <ol class="plainList">
+          <li>Click <strong>More info</strong> on the warning.</li>
+          <li>Click <strong>Run anyway</strong>.</li>
+          <li>Verify the checksum first if you have not already.</li>
+        </ol>
+      </article>
+
+      <article class="tile">
+        <h3>Verify what you downloaded</h3>
+        {release.sha256 ? (
+          <>
+            <p>SHA-256 of the installer:</p>
+            <p style="font-family: var(--font-mono); font-size: var(--fs-meta); overflow-wrap: anywhere;">
+              <code>{release.sha256}</code>
+            </p>
+            <p>Check it in PowerShell:</p>
+            <p style="font-family: var(--font-mono); font-size: var(--fs-meta); overflow-wrap: anywhere;">
+              <code>Get-FileHash .\Sanctum_{release.version}_x64-setup.exe -Algorithm SHA256</code>
+            </p>
+          </>
+        ) : (
+          <p>
+            No checksum has been published for this release yet. You can still compare your download
+            against the <code>SHA256SUMS.txt</code> asset on the release page when it appears.
+          </p>
+        )}
+      </article>
+    </div>
+  </section>
+
+  <section class="section wrap">
+    <h2>Requirements</h2>
+    <ul class="plainList">
+      <li>Windows 10 or Windows 11, 64-bit.</li>
+      <li>
+        WebView2, which ships with Windows 11 and is fetched automatically by the installer if it
+        is missing.
+      </li>
+      <li>Roughly 20 MB of disk once installed. Your vault grows with what you put in it.</li>
+    </ul>
+  </section>
+
+  <section class="section wrap">
+    <h2>Before you trust it with anything</h2>
+    <ul class="plainList">
+      <li>Sanctum is version 0.1.0 and has not been independently audited.</li>
+      <li>There is no sync and no cloud copy. Take a backup, and check you can restore it.</li>
+      <li>
+        If you lose your passphrase <em>and</em> your recovery code, the data is gone. No reset,
+        no email, no backdoor.
+      </li>
+      <li>
+        The source is on <a href={`https://github.com/itzmerai/sanctum`}>GitHub</a>. Reading it is
+        the only assurance available until an audit exists.
+      </li>
+    </ul>
+  </section>
+</Base>
