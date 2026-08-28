@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs'
 import Base from '../layouts/Base.astro'
 import Callout from '../components/Callout.astro'
 import Steps from '../components/Steps.astro'
-import { DOWNLOAD_URL, httpFetchers, latestRelease, REPO } from '../lib/release'
+import { DOWNLOAD_URL, RELEASES_URL, httpFetchers, latestRelease, REPO } from '../lib/release'
 
 const base = import.meta.env.BASE_URL
 
@@ -67,11 +67,24 @@ const sections = [
         )}
       </p>
 
+      {/*
+        Until a release is published there is no asset behind the permalink,
+        and a download button that 404s is worse than one that says so.
+      */}
       <div class="heroActions dlActions">
-        <a class="btn btn-primary btn--lg" href={DOWNLOAD_URL} rel="noopener">
-          Download Sanctum {release.version}
-        </a>
-        <a class="btn" href={`https://github.com/${REPO}/releases`} rel="noopener">All releases</a>
+        {release.live ? (
+          <>
+            <a class="btn btn-primary btn--lg" href={DOWNLOAD_URL} rel="noopener">
+              Download Sanctum {release.version}
+            </a>
+            <a class="btn" href={RELEASES_URL} rel="noopener">All releases</a>
+          </>
+        ) : (
+          <>
+            <span class="btn btn--lg" data-unavailable="true">No release published yet</span>
+            <a class="btn" href={RELEASES_URL} rel="noopener">Watch for releases</a>
+          </>
+        )}
       </div>
 
       <h2 id="warning">The Windows warning</h2>

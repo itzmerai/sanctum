@@ -643,3 +643,11 @@ kbd {
     text-align: left;
   }
 }
+
+/* A button that cannot do anything should not look like it can. */
+.btn[data-unavailable='true'] {
+  background: var(--bg-surface);
+  border-style: dashed;
+  color: var(--text-faint);
+  cursor: default;
+}

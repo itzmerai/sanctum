@@ -18,7 +18,15 @@ export const REPO = 'itzmerai/sanctum'
 /** The asset the download button points at, by name. */
 export const INSTALLER_SUFFIX = '-setup.exe'
 
-export const DOWNLOAD_URL = `https://github.com/${REPO}/releases/latest/download/Sanctum_x64-setup.exe`
+/**
+ * The permalink resolves by asset filename, so the release workflow publishes
+ * a version-free copy alongside the versioned one. Linking to
+ * `Sanctum_0.1.0_x64-setup.exe` would go stale on the next release.
+ */
+export const DOWNLOAD_URL = `https://github.com/${REPO}/releases/latest/download/Sanctum-setup.exe`
+
+/** Where to send people when no release exists yet, so nothing 404s. */
+export const RELEASES_URL = `https://github.com/${REPO}/releases`
 
 export interface ReleaseInfo {
   version: string

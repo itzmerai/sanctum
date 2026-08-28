@@ -91,7 +91,15 @@ jobs:
 
       # The checksum is published as its own asset so the download page can
       # show a hash without pulling down the installer to compute one (R11).
-      - name: Publish the checksum
+      # Publishes the checksum, and a second copy of the installer under a
+      # version-free name.
+      #
+      # `releases/latest/download/<name>` resolves by asset *filename*, and
+      # Tauri bakes the version into its own — `Sanctum_0.1.0_x64-setup.exe`.
+      # Linking to that would break on every release, which defeats the point
+      # of a permalink. The stable copy is what the site links to; the
+      # versioned one stays for people who want a specific build.
+      - name: Publish the checksum and a stable-named installer
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -102,10 +110,13 @@ jobs:
           if (-not $installer) { throw 'No NSIS installer was produced.' }
 
           $hash = (Get-FileHash -Algorithm SHA256 $installer.FullName).Hash.ToLower()
-          $file = Join-Path $env:RUNNER_TEMP 'SHA256SUMS.txt'
-          Set-Content -Path $file -Value "$hash  $($installer.Name)" -Encoding ascii
+          $sums = Join-Path $env:RUNNER_TEMP 'SHA256SUMS.txt'
+          Set-Content -Path $sums -Value "$hash  $($installer.Name)" -Encoding ascii
+
+          $stable = Join-Path $env:RUNNER_TEMP 'Sanctum-setup.exe'
+          Copy-Item $installer.FullName $stable -Force
 
           Write-Host "Installer: $($installer.Name)"
           Write-Host "SHA-256:   $hash"
 
-          gh release upload $env:TAG_NAME $file --clobber
+          gh release upload $env:TAG_NAME $sums $stable --clobber

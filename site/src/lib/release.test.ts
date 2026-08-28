@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  DOWNLOAD_URL,
   latestRelease,
   normaliseVersion,
   parseChecksum,
@@ -46,6 +47,15 @@ describe('parseChecksum', () => {
 
   it('returns null when there is no hash', () => {
     expect(parseChecksum('nothing here')).toBeNull()
+  })
+})
+
+describe('DOWNLOAD_URL', () => {
+  it('points at a version-free asset name', () => {
+    // The permalink resolves by filename, so a versioned name would 404 on
+    // every release after the one it was written for.
+    expect(DOWNLOAD_URL).toContain('releases/latest/download/')
+    expect(DOWNLOAD_URL).not.toMatch(/d+.d+.d+/)
   })
 })
 

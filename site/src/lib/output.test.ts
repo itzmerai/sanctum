@@ -100,9 +100,18 @@ describe('download page', () => {
     expect(html).toMatch(/WebView2/)
   })
 
-  it('points the download at the permalink, not a pinned version', () => {
-    // A version-pinned href would go stale the moment a release ships.
-    expect(html).toContain('releases/latest/download/')
+  it('never offers a version-pinned download link', () => {
+    // The permalink resolves by asset filename, so a versioned href would 404
+    // on every release after the one it was written for.
+    expect(html).not.toMatch(/releases\/latest\/download\/[^"]*\d+\.\d+\.\d+/)
+  })
+
+  it('offers a real destination whether or not a release exists', () => {
+    // With no release published the permalink has nothing behind it, so the
+    // page must send people to the releases list rather than a 404.
+    const hasPermalink = html.includes('releases/latest/download/')
+    const hasReleasesList = html.includes('/releases"')
+    expect(hasPermalink || hasReleasesList).toBe(true)
   })
 
   it('states the unrecoverable-passphrase consequence', () => {
