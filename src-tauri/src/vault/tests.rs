@@ -543,3 +543,166 @@ fn foreign_keys_are_enforced() {
         "a credential must not reference a folder that does not exist"
     );
 }
+
+// --- M4: env files -----------------------------------------------------------
+
+/// Builds a database at the pre-env-files schema so the migration can be
+/// exercised against real rows rather than an empty file.
+fn v3_database(path: &Path) {
+    let conn = rusqlite::Connection::open(path).unwrap();
+    conn.pragma_update(None, "foreign_keys", true).unwrap();
+    for ddl in super::schema::MIGRATIONS.iter().take(3) {
+        conn.execute_batch(ddl).unwrap();
+    }
+    conn.execute_batch("PRAGMA user_version = 3;").unwrap();
+}
+
+#[test]
+fn a_fresh_database_has_the_env_files_table() {
+    let vault = Vault::open_in_memory().unwrap();
+    let count: i64 = vault
+        .connection()
+        .query_row("SELECT COUNT(*) FROM env_files", [], |row| row.get(0))
+        .unwrap();
+    assert_eq!(count, 0);
+}
+
+/// The regression test for M4's central hazard.
+///
+/// Widening the `folders.kind` CHECK means rebuilding the table. Dropping it
+/// naively, with foreign keys on, fires ON DELETE SET NULL against every
+/// credential and note that referenced it -- so the migration would appear to
+/// succeed while quietly emptying the Folders screen.
+#[test]
+fn a_migration_to_env_files_keeps_folder_assignments() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().join("sanctum.db");
+    v3_database(&path);
+
+    // Raw rows: this test is about the foreign key action, not about crypto.
+    {
+        let conn = rusqlite::Connection::open(&path).unwrap();
+        conn.pragma_update(None, "foreign_keys", true).unwrap();
+        conn.execute_batch(
+            "INSERT INTO folders (id, kind, name_enc, color, created_at, updated_at)
+                 VALUES (11, 'passwords', X'00', '#123456', 1, 1),
+                        (12, 'notes',     X'00', '#654321', 1, 1);
+             INSERT INTO credentials
+                 (id, name_enc, username_enc, password_enc, website_enc, notes_enc, tags_enc,
+                  folder_id, created_at, updated_at)
+                 VALUES (21, X'00', X'00', X'00', X'00', X'00', X'00', 11, 1, 1);
+             INSERT INTO notes (id, title_enc, body_enc, labels_enc, folder_id, created_at, updated_at)
+                 VALUES (31, X'00', X'00', X'00', 12, 1, 1);
+             INSERT INTO favorites (entity_type, entity_id, created_at)
+                 VALUES ('credential', 21, 1);",
+        )
+        .unwrap();
+    }
+
+    // Opening runs the migration.
+    let vault = Vault::open(&path).unwrap();
+    let conn = vault.connection();
+
+    let credential_folder: Option<i64> = conn
+        .query_row("SELECT folder_id FROM credentials WHERE id = 21", [], |r| {
+            r.get(0)
+        })
+        .unwrap();
+    assert_eq!(
+        credential_folder,
+        Some(11),
+        "the credential must still be filed in its folder"
+    );
+
+    let note_folder: Option<i64> = conn
+        .query_row("SELECT folder_id FROM notes WHERE id = 31", [], |r| {
+            r.get(0)
+        })
+        .unwrap();
+    assert_eq!(
+        note_folder,
+        Some(12),
+        "the note must still be filed in its folder"
+    );
+
+    let folders: i64 = conn
+        .query_row("SELECT COUNT(*) FROM folders", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(folders, 2, "both folders must survive the rebuild");
+
+    let favorites: i64 = conn
+        .query_row("SELECT COUNT(*) FROM favorites", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(favorites, 1, "favourites must survive the rebuild");
+
+    // The rebuild must leave no scaffolding behind.
+    let leftovers: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM sqlite_master
+             WHERE type = 'table' AND (name LIKE '%_m4%' OR name LIKE '%_m4_old')",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap();
+    assert_eq!(leftovers, 0, "migration scaffolding tables must be gone");
+}
+
+#[test]
+fn favorites_accept_an_env_file_after_migration() {
+    let vault = Vault::open_in_memory().unwrap();
+    vault.set_favorite("env_file", 4242, true).unwrap();
+    assert!(vault.is_favorite("env_file", 4242).unwrap());
+}
+
+#[test]
+fn folders_accept_the_env_kind_after_migration() {
+    let vault = Vault::open_in_memory().unwrap();
+    vault
+        .connection()
+        .execute_batch(
+            "INSERT INTO folders (id, kind, name_enc, color, created_at, updated_at)
+             VALUES (51, 'env', X'00', '#123456', 1, 1);",
+        )
+        .expect("the env folder kind must be accepted after M4");
+}
+
+#[test]
+fn env_files_reject_an_unknown_environment() {
+    let vault = Vault::open_in_memory().unwrap();
+    let result = vault.connection().execute_batch(
+        "INSERT INTO env_files
+             (id, title_enc, content_enc, environment, folder_id, created_at, updated_at)
+             VALUES (61, X'00', X'00', 'preview', NULL, 1, 1);",
+    );
+    assert!(
+        result.is_err(),
+        "only production, staging and local are valid environments"
+    );
+}
+
+#[test]
+fn deleting_a_folder_detaches_its_env_files() {
+    let vault = Vault::open_in_memory().unwrap();
+    vault
+        .connection()
+        .execute_batch(
+            "INSERT INTO folders (id, kind, name_enc, color, created_at, updated_at)
+                 VALUES (71, 'env', X'00', '#123456', 1, 1);
+             INSERT INTO env_files
+                 (id, title_enc, content_enc, environment, folder_id, created_at, updated_at)
+                 VALUES (72, X'00', X'00', 'production', 71, 1, 1);
+             DELETE FROM folders WHERE id = 71;",
+        )
+        .unwrap();
+
+    let folder: Option<i64> = vault
+        .connection()
+        .query_row("SELECT folder_id FROM env_files WHERE id = 72", [], |r| {
+            r.get(0)
+        })
+        .unwrap();
+    assert_eq!(
+        folder, None,
+        "the record survives, detached from the folder"
+    );
+}

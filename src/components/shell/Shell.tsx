@@ -32,6 +32,7 @@ const MODULES: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
   { to: '/vault', label: 'Vault', icon: 'key' },
   { to: '/notes', label: 'Notes', icon: 'note' },
+  { to: '/env', label: 'Env Files', icon: 'key' },
   { to: '/tasks', label: 'Tasks', icon: 'task' },
   { to: '/calendar', label: 'Calendar', icon: 'calendar' },
   { to: '/income', label: 'Income', icon: 'income' },

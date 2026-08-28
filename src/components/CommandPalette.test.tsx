@@ -16,6 +16,7 @@ const listCredentials = vi.fn()
 const listNotes = vi.fn()
 const listTasks = vi.fn()
 const listIncome = vi.fn()
+const listEnvFiles = vi.fn()
 const listFolders = vi.fn()
 
 vi.mock('../lib/ipc', async () => {
@@ -26,12 +27,14 @@ vi.mock('../lib/ipc', async () => {
     notes: { list: () => listNotes() },
     tasks: { list: () => listTasks() },
     income: { list: () => listIncome() },
+    envFiles: { list: () => listEnvFiles() },
     folders: { list: (kind: string) => listFolders(kind) },
   }
 })
 
 beforeEach(() => {
   vi.clearAllMocks()
+  listEnvFiles.mockResolvedValue([])
   listCredentials.mockResolvedValue([
     {
       id: 1,
@@ -173,6 +176,35 @@ describe('command palette (R16)', () => {
       }
     }
     expect(container.textContent).not.toMatch(/password/i)
+  })
+
+  it('finds an env file by project but never by its contents', async () => {
+    listEnvFiles.mockResolvedValue([
+      {
+        id: '5744466908857731456',
+        title: 'Acme Storefront',
+        content: 'DATABASE_URL=postgres://u:hunter2@localhost/acme',
+        environment: 'production',
+        folderId: null,
+        favorite: false,
+        createdAt: 1,
+        updatedAt: 1,
+      },
+    ])
+    const user = userEvent.setup()
+    const { container } = open()
+    const field = await screen.findByLabelText('Search everything')
+
+    await user.type(field, 'acme')
+    expect(await screen.findByText('Acme Storefront')).toBeInTheDocument()
+
+    // The file is findable by project name; its secrets are not in the DOM,
+    // and searching by a value must not surface it either.
+    expect(container.textContent).not.toMatch(/hunter2|postgres:/)
+
+    await user.clear(field)
+    await user.type(field, 'hunter2')
+    expect(screen.queryByText('Acme Storefront')).toBeNull()
   })
 
   it('offers pages so it doubles as a navigator', async () => {

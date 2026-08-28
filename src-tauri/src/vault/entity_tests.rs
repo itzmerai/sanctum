@@ -512,3 +512,232 @@ fn the_log_is_capped() {
     let entries = vault.list_activity(&dek, 1).unwrap();
     assert_eq!(entries[0].subject, "entry 519");
 }
+
+// ---------------------------------------------------------------------------
+// Env files -- R1, R2, R3, R4, R6
+// ---------------------------------------------------------------------------
+
+/// A realistic file: a comment, a blank line, quoting, and a trailing newline.
+/// Every one of those is something a naive "parse then re-serialise" store
+/// would quietly discard.
+const SAMPLE_ENV: &str = "# Stripe - rotated 2026-03\nSTRIPE_KEY=\"sk_live_x#not_a_comment\"\n\n# Database\nDATABASE_URL=postgres://user:pw@localhost:5432/acme\nexport NODE_ENV=production\n";
+
+fn sample_env_file() -> NewEnvFile {
+    NewEnvFile {
+        title: "Acme Storefront".into(),
+        content: SAMPLE_ENV.into(),
+        environment: ENV_PRODUCTION.into(),
+        folder_id: None,
+    }
+}
+
+#[test]
+fn an_env_file_round_trips() {
+    let (vault, dek) = vault_with_key();
+    let id = vault.insert_env_file(&dek, &sample_env_file()).unwrap();
+
+    let stored = vault.get_env_file(&dek, id).unwrap().unwrap();
+    assert_eq!(stored.title, "Acme Storefront");
+    assert_eq!(stored.environment, ENV_PRODUCTION);
+    assert_eq!(stored.folder_id, None);
+    assert_eq!(
+        stored.content, SAMPLE_ENV,
+        "the file must come back byte-for-byte"
+    );
+}
+
+/// KD3's whole reason for existing.
+#[test]
+fn comments_blank_lines_and_key_order_survive() {
+    let (vault, dek) = vault_with_key();
+    let id = vault.insert_env_file(&dek, &sample_env_file()).unwrap();
+    let stored = vault.get_env_file(&dek, id).unwrap().unwrap();
+
+    assert!(stored.content.starts_with("# Stripe - rotated 2026-03\n"));
+    assert!(stored.content.contains("\n\n# Database\n"));
+    assert!(stored.content.ends_with("export NODE_ENV=production\n"));
+
+    let keys: Vec<&str> = stored
+        .content
+        .lines()
+        .filter(|line| line.contains('=') && !line.starts_with('#'))
+        .collect();
+    assert_eq!(keys.len(), 3, "three assignments, in their original order");
+    assert!(keys[0].starts_with("STRIPE_KEY="));
+    assert!(keys[2].starts_with("export NODE_ENV="));
+}
+
+#[test]
+fn a_multi_line_value_round_trips() {
+    let (vault, dek) = vault_with_key();
+    let pem = "PRIVATE_KEY=\"-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBg\nkqhkiG9w0BAQEF\n-----END PRIVATE KEY-----\"\n";
+    let id = vault
+        .insert_env_file(
+            &dek,
+            &NewEnvFile {
+                title: "Globex API".into(),
+                content: pem.into(),
+                environment: ENV_STAGING.into(),
+                folder_id: None,
+            },
+        )
+        .unwrap();
+
+    assert_eq!(vault.get_env_file(&dek, id).unwrap().unwrap().content, pem);
+}
+
+#[test]
+fn crlf_line_endings_are_not_normalised() {
+    let (vault, dek) = vault_with_key();
+    let crlf = "A=1\r\nB=2\r\n";
+    let id = vault
+        .insert_env_file(
+            &dek,
+            &NewEnvFile {
+                title: "Windows checkout".into(),
+                content: crlf.into(),
+                environment: ENV_LOCAL.into(),
+                folder_id: None,
+            },
+        )
+        .unwrap();
+
+    assert_eq!(vault.get_env_file(&dek, id).unwrap().unwrap().content, crlf);
+}
+
+#[test]
+fn updating_an_env_file_keeps_its_creation_time() {
+    let (vault, dek) = vault_with_key();
+    let id = vault.insert_env_file(&dek, &sample_env_file()).unwrap();
+    let before = vault.get_env_file(&dek, id).unwrap().unwrap();
+
+    let mut edited = sample_env_file();
+    edited.content = "A=1\n".into();
+    edited.environment = ENV_LOCAL.into();
+    vault.update_env_file(&dek, id, &edited).unwrap();
+
+    let after = vault.get_env_file(&dek, id).unwrap().unwrap();
+    assert_eq!(after.content, "A=1\n");
+    assert_eq!(after.environment, ENV_LOCAL);
+    assert_eq!(after.created_at, before.created_at);
+    assert!(after.updated_at >= before.updated_at);
+}
+
+#[test]
+fn an_unknown_environment_is_rejected() {
+    let (vault, dek) = vault_with_key();
+    let mut bad = sample_env_file();
+    bad.environment = "preview".into();
+
+    assert!(
+        vault.insert_env_file(&dek, &bad).is_err(),
+        "only the three named environments are storable"
+    );
+}
+
+#[test]
+fn a_wrong_key_cannot_read_an_env_file() {
+    let (vault, dek) = vault_with_key();
+    let id = vault.insert_env_file(&dek, &sample_env_file()).unwrap();
+
+    let stranger = crate::crypto::SymmetricKey::generate().unwrap();
+    assert!(vault.get_env_file(&stranger, id).is_err());
+}
+
+/// The AAD binds each blob to its row, so a stolen ciphertext cannot be
+/// replayed into another record.
+#[test]
+fn an_env_blob_cannot_be_moved_between_rows() {
+    let (vault, dek) = vault_with_key();
+    let first = vault.insert_env_file(&dek, &sample_env_file()).unwrap();
+    let second = vault
+        .insert_env_file(
+            &dek,
+            &NewEnvFile {
+                title: "Second".into(),
+                content: "B=2\n".into(),
+                environment: ENV_LOCAL.into(),
+                folder_id: None,
+            },
+        )
+        .unwrap();
+
+    let stolen: Vec<u8> = vault
+        .connection()
+        .query_row(
+            "SELECT content_enc FROM env_files WHERE id = ?1",
+            rusqlite::params![first],
+            |row| row.get(0),
+        )
+        .unwrap();
+    vault
+        .connection()
+        .execute(
+            "UPDATE env_files SET content_enc = ?2 WHERE id = ?1",
+            rusqlite::params![second, stolen],
+        )
+        .unwrap();
+
+    assert!(
+        vault.get_env_file(&dek, second).is_err(),
+        "a blob sealed for another row must not authenticate here"
+    );
+}
+
+#[test]
+fn env_files_list_newest_first_and_count() {
+    let (vault, dek) = vault_with_key();
+    vault.insert_env_file(&dek, &sample_env_file()).unwrap();
+    let second = vault
+        .insert_env_file(
+            &dek,
+            &NewEnvFile {
+                title: "Later".into(),
+                content: "B=2\n".into(),
+                environment: ENV_LOCAL.into(),
+                folder_id: None,
+            },
+        )
+        .unwrap();
+
+    let listed = vault.list_env_files(&dek).unwrap();
+    assert_eq!(listed.len(), 2);
+    assert_eq!(listed[0].id, second, "most recently touched first");
+    assert_eq!(vault.env_file_count().unwrap(), 2);
+}
+
+#[test]
+fn deleting_an_env_file_clears_its_favourite() {
+    let (vault, dek) = vault_with_key();
+    let id = vault.insert_env_file(&dek, &sample_env_file()).unwrap();
+    vault.set_favorite("env_file", id, true).unwrap();
+
+    vault.delete_env_file(id).unwrap();
+    assert!(!vault.is_favorite("env_file", id).unwrap());
+    assert!(vault.get_env_file(&dek, id).unwrap().is_none());
+    assert!(
+        vault.delete_env_file(id).is_err(),
+        "deleting twice reports not found"
+    );
+}
+
+#[test]
+fn an_env_file_can_live_in_an_env_folder() {
+    let (vault, dek) = vault_with_key();
+    let folder = vault
+        .insert_folder(&dek, KIND_ENV, "Acme Storefront", "#4c8bf5")
+        .unwrap();
+
+    let mut filed = sample_env_file();
+    filed.folder_id = Some(folder);
+    let id = vault.insert_env_file(&dek, &filed).unwrap();
+
+    assert_eq!(
+        vault.get_env_file(&dek, id).unwrap().unwrap().folder_id,
+        Some(folder)
+    );
+
+    let folders = vault.list_folders(&dek, KIND_ENV).unwrap();
+    assert_eq!(folders.len(), 1);
+    assert_eq!(folders[0].item_count, 1, "the folder counts its env files");
+}

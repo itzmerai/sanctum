@@ -10,7 +10,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Icon } from '../../components/Icon'
 import { Modal } from '../../components/Modal'
 import { FolderContents } from './FolderContents'
-import { CommandError, credentials, folders, type Folder } from '../../lib/ipc'
+import { CommandError, credentials, folders, type Folder, type FolderKind } from '../../lib/ipc'
 import './folders.css'
 
 /** The palette from the reference's colour picker. */
@@ -25,7 +25,14 @@ export const FOLDER_COLORS = [
   '#8a8a80',
 ]
 
-type Kind = 'passwords' | 'notes'
+type Kind = FolderKind
+
+/** Tab label and empty-state noun for each kind. */
+const KINDS: { id: Kind; label: string; noun: string }[] = [
+  { id: 'passwords', label: 'Passwords', noun: 'password' },
+  { id: 'notes', label: 'Notes', noun: 'note' },
+  { id: 'env', label: 'Env Files', noun: 'env file' },
+]
 
 export function FoldersPage() {
   const [kind, setKind] = useState<Kind>('passwords')
@@ -85,27 +92,23 @@ export function FoldersPage() {
           <h1 className="page__title">
             Folders
             <span className="fold__tabs">
-              <button
-                className="fold__tab"
-                data-on={kind === 'passwords'}
-                onClick={() => setKind('passwords')}
-              >
-                Passwords
-              </button>
-              <button
-                className="fold__tab"
-                data-on={kind === 'notes'}
-                onClick={() => setKind('notes')}
-              >
-                Notes
-              </button>
+              {KINDS.map((entry) => (
+                <button
+                  key={entry.id}
+                  className="fold__tab"
+                  data-on={kind === entry.id}
+                  onClick={() => setKind(entry.id)}
+                >
+                  {entry.label}
+                </button>
+              ))}
             </span>
             <span className="fold__count">
               · {items.length} folder{items.length === 1 ? '' : 's'}
             </span>
           </h1>
           <p className="page__sub">
-            Keep credentials and notes grouped in color-coded folders.
+            Keep credentials, notes and env files grouped in color-coded folders.
           </p>
         </div>
         <button className="toolbar__add" onClick={() => setCreating(true)} aria-label="New folder">
@@ -122,7 +125,7 @@ export function FoldersPage() {
       ) : items.length === 0 ? (
         <div className="card page__empty">
           <Icon name="folder" size={22} />
-          <p>No {kind === 'notes' ? 'note' : 'password'} folders yet.</p>
+          <p>No {KINDS.find((entry) => entry.id === kind)?.noun} folders yet.</p>
           <button className="btn btn-primary" onClick={() => setCreating(true)}>
             <Icon name="plus" /> New folder
           </button>

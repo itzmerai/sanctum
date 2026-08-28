@@ -217,9 +217,12 @@ export interface Folder {
   createdAt: number
 }
 
+/** Folders are scoped per module, so a project needs one folder per kind. */
+export type FolderKind = 'passwords' | 'notes' | 'env'
+
 export const folders = {
-  list: (kind: 'passwords' | 'notes') => invoke<Folder[]>('list_folders', { kind }),
-  create: (kind: 'passwords' | 'notes', name: string, color: string) =>
+  list: (kind: FolderKind) => invoke<Folder[]>('list_folders', { kind }),
+  create: (kind: FolderKind, name: string, color: string) =>
     invoke<Id>('create_folder', { kind, name, color }),
   update: (id: Id, name: string, color: string) =>
     invoke<void>('update_folder', { id, name, color }),
@@ -341,9 +344,49 @@ export const activity = {
   clear: () => invoke<number>('clear_activity'),
 }
 
+// --- env files (U3) ----------------------------------------------------------
+
+/** The three environments an env file can belong to (R2). */
+export type EnvEnvironment = 'production' | 'staging' | 'local'
+
+export const ENV_ENVIRONMENTS: EnvEnvironment[] = ['production', 'staging', 'local']
+
+export interface EnvFile {
+  id: Id
+  /** The project this file belongs to. */
+  title: string
+  /** The raw file text, byte-for-byte as saved. Never reformatted. */
+  content: string
+  environment: EnvEnvironment
+  folderId: Id | null
+  favorite: boolean
+  createdAt: number
+  updatedAt: number
+}
+
+export interface EnvFileInput {
+  title: string
+  content: string
+  environment: EnvEnvironment
+  folderId: Id | null
+}
+
+export const envFiles = {
+  list: () => invoke<EnvFile[]>('list_env_files'),
+  create: (input: EnvFileInput) => invoke<Id>('create_env_file', { input }),
+  update: (id: Id, input: EnvFileInput) => invoke<void>('update_env_file', { id, input }),
+  remove: (id: Id) => invoke<void>('delete_env_file', { id }),
+}
+
+/** Reads a picked .env from disk. Rust does the reading; see read_env_text. */
+export function readEnvText(source: string) {
+  return invoke<string>('read_env_text', { source })
+}
+
 export interface VaultSummary {
   credentials: number
   notes: number
+  envFiles: number
   openTasks: number
   overdueTasks: number
   incomeThisMonthMinor: number
