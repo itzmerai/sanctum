@@ -1,19 +1,28 @@
 # Sanctum
 
-An offline password and personal vault for Windows. Credentials, notes, tasks,
-income and a calendar live in a single encrypted SQLite file on your machine.
-There is no account, no sync, no server, and nothing to sign up for.
+An offline vault for freelance developers, on Windows. Credentials, `.env`
+files, notes, tasks, income and a calendar live in a single encrypted SQLite
+file on your machine. There is no account, no sync, no server, and nothing to
+sign up for.
+
+**[sanctum website](https://itzmerai.github.io/sanctum/)** &middot;
+**[Download for Windows](https://github.com/itzmerai/sanctum/releases/latest/download/Sanctum-setup.exe)**
+&middot; [Guide](https://itzmerai.github.io/sanctum/guide/)
+&middot; [All releases](https://github.com/itzmerai/sanctum/releases)
 
 **Status: 0.1.0.** Working and tested, but early. The cryptography has not been
-independently audited and installers are not yet code-signed — see
-[Honest limitations](#honest-limitations) before trusting it with anything you
-cannot afford to lose.
+independently audited and installers are not yet code-signed — Windows
+SmartScreen will warn you, and the
+[download page](https://itzmerai.github.io/sanctum/download/) explains why and
+publishes a checksum. Read [Honest limitations](#honest-limitations) before
+trusting it with anything you cannot afford to lose.
 
 ## What it holds
 
 | | |
 |---|---|
 | **Vault** | Credentials with username, password, URL, notes and folders |
+| **Env Files** | One record per project and environment, stored byte for byte |
 | **Notes** | Free-form notes with labels, favourites and a quick peek |
 | **Tasks** | Due dates, overdue highlighting, completion |
 | **Income** | Entries in minor units with monthly totals |
@@ -23,6 +32,21 @@ cannot afford to lose.
 
 Folders and favourites cut across everything, and `Ctrl+K` opens a command
 palette that searches all of it — without ever surfacing a password.
+
+### Why `.env` files
+
+A `.env` is usually the most dangerous file in a project and the one handled
+most carelessly: the production database URI, the Stripe key, the AWS
+credentials, sitting in plaintext in a project folder and pasted into chat when
+a teammate needs them. A password manager does not help, because a `.env` is
+not a login — it is a file, and it has to come back out as the same file.
+
+Sanctum stores the raw text and parses it only to decide what to show you, so
+comments, blank lines, quoting and key order all survive the round trip. Values
+are masked until you reveal them, and you can copy a single key or the whole
+file. A store that kept parsed key-value pairs would drop your
+`# rotated 2026-03` notes and reorder the rest — and still appear to work,
+which is what makes that failure mode nasty.
 
 ## How your data is protected
 
@@ -70,7 +94,19 @@ which sites you hold credentials for. Turning it on is a deliberate choice.
 - **No sync, by design.** Your vault exists on one machine. Take backups.
 - **Windows only.** The clipboard protections use Windows-specific formats.
 
-## Running it
+## Installing it
+
+Download the installer from the
+[latest release](https://github.com/itzmerai/sanctum/releases/latest), or from
+the [download page](https://itzmerai.github.io/sanctum/download/), which also
+publishes the SHA-256 so you can verify what you got. Windows 10 or 11, 64-bit.
+No administrator rights needed.
+
+The installer is unsigned, so SmartScreen will warn you — the download page
+explains what that warning means and how to proceed rather than routing around
+it.
+
+## Building it
 
 Requires [Rust](https://rustup.rs), the Visual Studio Build Tools with the MSVC
 C++ workload, Node 20+, and WebView2 (present on Windows 11).
