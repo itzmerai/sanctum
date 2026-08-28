@@ -46,15 +46,23 @@ a {
   text-decoration: none;
 }
 
+/* Both variants ship and CSS chooses, so the mark follows the theme without
+   JavaScript and without waiting for hydration. The artwork is detailed, so
+   30px is about its floor - the favicon uses the simplified silhouette. */
 .siteHeader__mark {
-  width: 18px;
-  height: 18px;
-  border-radius: var(--r-icon);
-  background: var(--accent);
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+:root[data-theme='light'] .siteHeader__mark--dark,
+:root[data-theme='dark'] .siteHeader__mark--light {
+  display: none;
 }
 
 .siteHeader__nav {
   display: flex;
+  align-items: center;
   gap: var(--sp-5);
   font-family: var(--font-mono);
   font-size: var(--fs-body);
@@ -86,25 +94,32 @@ a {
 /* --- hero ---------------------------------------------------------------- */
 
 .hero {
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  gap: var(--sp-8);
-  align-items: center;
-  padding: var(--sp-8) 0;
+  padding: var(--sp-8) 0 var(--sp-6);
+  max-width: 46rem;
+}
+
+.eyebrow {
+  margin: 0 0 var(--sp-3);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
 }
 
 .hero h1 {
   margin: 0 0 var(--sp-4);
   font-family: var(--font-mono);
-  font-size: clamp(1.9rem, 4vw, 2.9rem);
-  line-height: 1.15;
+  font-size: clamp(2rem, 5vw, 3.1rem);
+  line-height: 1.12;
   letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
-.hero p {
-  margin: 0 0 var(--sp-5);
+.lede {
+  margin: 0 0 var(--sp-6);
   color: var(--text-dim);
-  font-size: 1.05rem;
+  font-size: 1.08rem;
 }
 
 .heroActions {
@@ -114,42 +129,37 @@ a {
   align-items: center;
 }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-2);
-  height: var(--control-h);
-  padding: 0 var(--sp-5);
-  border: 1px solid var(--border);
-  border-radius: var(--r-btn);
-  background: var(--bg-surface);
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: var(--fs-body);
+/* Ours are anchors, not buttons; everything else about .btn and .btn-primary
+   comes from the app's tokens.css, hover states included. */
+a.btn {
   text-decoration: none;
-  cursor: pointer;
 }
 
-.btn--primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-on, var(--bg-app));
-}
-
-.btn:hover {
-  border-color: var(--border-strong);
+/* The app's own .btn and .btn-primary come from tokens.css, including their
+   hover states. Only the large size is site-specific - the app has no
+   equivalent, because nothing in it needs a hero-sized button. */
+.btn--lg {
+  height: 46px;
+  padding: 0 var(--sp-6);
+  font-size: 1rem;
 }
 
 .themeToggle {
-  height: var(--control-h);
-  padding: 0 var(--sp-4);
-  border: 1px solid var(--border);
-  border-radius: var(--r-btn);
-  background: transparent;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--r-icon);
+  background: none;
   color: var(--text-dim);
-  font-family: var(--font-mono);
-  font-size: var(--fs-meta);
   cursor: pointer;
+}
+
+.themeToggle:hover {
+  border-color: var(--border);
+  color: var(--text);
 }
 
 /* --- sections ------------------------------------------------------------ */
@@ -226,5 +236,410 @@ a {
   .hero {
     grid-template-columns: 1fr;
     gap: var(--sp-5);
+  }
+}
+
+
+/* --- stage --------------------------------------------------------------- */
+
+/* The replica is the product shot. It gets its own band, a little wider than
+   the prose, so the dashboard's right rail stays readable. */
+.stage {
+  padding-bottom: var(--sp-8);
+}
+
+.stageNote {
+  margin: var(--sp-4) 0 0;
+  color: var(--text-faint);
+  font-size: var(--fs-meta);
+  text-align: center;
+}
+
+.tile--warn {
+  border-color: var(--border-strong);
+}
+
+.closing {
+  text-align: center;
+}
+
+.closing > p {
+  margin-inline: auto;
+}
+
+.closing .heroActions {
+  justify-content: center;
+}
+
+code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--bg-surface);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+
+/* --- callouts ------------------------------------------------------------ */
+
+.callout {
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: var(--r-card);
+  background: var(--bg-surface);
+}
+
+.callout--warn {
+  border-left-color: var(--text-dim);
+}
+
+.callout--danger {
+  border-left-color: var(--danger, var(--text));
+}
+
+.callout--note {
+  border-left-color: var(--accent);
+}
+
+.callout__title {
+  margin: 0 0 var(--sp-2);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-body);
+}
+
+.callout__body p:last-child {
+  margin-bottom: 0;
+}
+
+.callout__body p {
+  font-size: var(--fs-body);
+}
+
+/* --- guide index --------------------------------------------------------- */
+
+.guideCards {
+  margin: var(--sp-6) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.guideCard {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  background: var(--bg-surface);
+  text-decoration: none;
+}
+
+.guideCard:hover {
+  border-color: var(--accent);
+}
+
+.guideCard__num {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: var(--fs-body);
+  flex: none;
+}
+
+.guideCard__title {
+  display: block;
+  font-family: var(--font-mono);
+}
+
+.guideCard__blurb {
+  display: block;
+  color: var(--text-dim);
+  font-size: var(--fs-body);
+}
+
+.guideCard__go {
+  margin-left: auto;
+  color: var(--text-faint);
+}
+
+
+
+/* --- documentation pages ------------------------------------------------- */
+
+/* The guide and the download page share this layout so they cannot drift into
+   two different-looking documents, which is exactly what happened when each
+   had its own. The landing page is deliberately wider and full-bleed; these
+   two are documents and read like documents. */
+
+.doc {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: var(--sp-8);
+  align-items: start;
+  padding: var(--sp-6) 0 var(--sp-8);
+}
+
+.doc__rail {
+  position: sticky;
+  top: var(--sp-5);
+}
+
+.doc__railLabel {
+  margin: 0 0 var(--sp-3);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.backLink {
+  display: inline-block;
+  margin-bottom: var(--sp-5);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  text-decoration: none;
+}
+
+.backLink:hover {
+  color: var(--text);
+}
+
+/* --- rail navigation ----------------------------------------------------- */
+
+.doc__toc {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-left: 1px solid var(--border);
+}
+
+.doc__toc a {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  margin-left: -1px;
+  border-left: 1px solid transparent;
+  color: var(--text-dim);
+  font-size: var(--fs-body);
+  text-decoration: none;
+}
+
+.doc__toc a:hover {
+  color: var(--text);
+}
+
+.doc__toc a[data-on='true'] {
+  border-left-color: var(--accent);
+  color: var(--text);
+}
+
+.doc__num {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+}
+
+/* --- document prose ------------------------------------------------------ */
+
+/* Measure is capped because long technical sentences become unreadable past
+   about 70 characters, and both these pages have plenty of them. */
+/* No measure cap: the rail already narrows this column to about 830px, which
+   is the readable limit here. Capping again left the text marooned with dead
+   space to its right. */
+.doc__body {
+  min-width: 0;
+}
+
+.doc__body h1 {
+  margin: 0 0 var(--sp-4);
+  font-family: var(--font-mono);
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.doc__body h2 {
+  margin: var(--sp-8) 0 var(--sp-3);
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+}
+
+.doc__body h3 {
+  margin: var(--sp-6) 0 var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-section);
+}
+
+.doc__body p {
+  margin: 0 0 var(--sp-4);
+  color: var(--text-dim);
+}
+
+/* Prose links only. An unqualified `a` here outranks .btn-primary and repaints
+   the download button in accent-on-accent, which is invisible. */
+.doc__body a:not([class]) {
+  color: var(--accent);
+  text-underline-offset: 3px;
+}
+
+.doc__body .frame {
+  margin: var(--sp-5) 0;
+}
+
+.doc__body .twoUp {
+  margin-bottom: var(--sp-4);
+}
+
+.doc__body .plainList {
+  margin: 0 0 var(--sp-5);
+}
+
+/* Numbered steps get a real counter, so a reader can say "I'm stuck on 3". */
+.doc__body ol.plainList {
+  counter-reset: step;
+  list-style: none;
+  padding-left: 0;
+}
+
+.doc__body ol.plainList li {
+  counter-increment: step;
+  position: relative;
+  padding-left: var(--sp-8);
+  margin-bottom: var(--sp-4);
+}
+
+.doc__body ol.plainList li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  background: var(--bg-surface);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+}
+
+kbd {
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-surface);
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+}
+
+/* --- document footer navigation ------------------------------------------ */
+
+.doc__nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-5);
+  border-top: 1px solid var(--border);
+}
+
+.doc__navLink {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  background: var(--bg-surface);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-body);
+  text-decoration: none;
+}
+
+.doc__navLink:hover {
+  border-color: var(--border-strong);
+}
+
+.doc__navLink--next {
+  text-align: right;
+}
+
+.doc__navLabel {
+  color: var(--text-faint);
+  font-size: var(--fs-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+/* --- download specifics -------------------------------------------------- */
+
+.dlActions {
+  margin-bottom: var(--sp-6);
+  padding-bottom: var(--sp-6);
+  border-bottom: 1px solid var(--border);
+}
+
+/* The hash must be selectable and readable in full - truncating the thing
+   people are meant to compare would defeat publishing it. */
+.hash code {
+  display: block;
+  padding: var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-input);
+  background: var(--bg-surface);
+  font-size: var(--fs-meta);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.cmd {
+  margin: 0 0 var(--sp-4);
+  padding: var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-input);
+  background: var(--bg-surface);
+  overflow-x: auto;
+}
+
+.cmd code {
+  padding: 0;
+  background: none;
+  font-size: var(--fs-meta);
+  white-space: pre;
+}
+
+@media (max-width: 900px) {
+  .doc {
+    grid-template-columns: 1fr;
+    gap: var(--sp-5);
+  }
+
+  .doc__rail {
+    position: static;
+  }
+
+  .doc__nav {
+    grid-template-columns: 1fr;
+  }
+
+  .doc__navLink--next {
+    text-align: left;
   }
 }

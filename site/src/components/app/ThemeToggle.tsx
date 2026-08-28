@@ -1,64 +1,58 @@
 /**
  * Light/dark switch (U4).
  *
+ * An icon button sitting in the header nav, the same way the app puts its
+ * theme control in the sidebar rather than labelling it.
+ *
  * The plan called for scoping the theme to the replica so a visitor could see
  * both without changing the page. The app's token file defines its palettes on
  * `:root[data-theme]`, so a replica-scoped switch would mean re-declaring
  * every colour in the site - the copy KTD3 exists to forbid, and the first
- * thing that would drift.
+ * thing that would drift. So the toggle flips the document, and the whole site
+ * renders in the product's design system.
  *
- * So the toggle flips the document instead, and the whole site follows the
- * app's theming. That is the honest resolution and arguably the better demo:
- * the page a visitor is reading *is* rendered in the product's design system.
- *
- * This is the only component on the site that ships JavaScript.
+ * `Base.astro` applies the stored theme before first paint; this component
+ * only handles changing it. This is the only JavaScript the site ships.
  */
 import { useEffect, useState } from 'react'
+
+import { Icon } from '@app/components/Icon'
 
 type Theme = 'light' | 'dark'
 
 const KEY = 'sanctum.site.theme'
 
-function preferred(): Theme {
-  if (typeof window === 'undefined') return 'dark'
-  try {
-    const stored = localStorage.getItem(KEY)
-    if (stored === 'light' || stored === 'dark') return stored
-  } catch {
-    // Private browsing and blocked storage both land here; the media query
-    // below is a perfectly good answer.
-  }
-  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
-}
-
 export function ThemeToggle() {
+  // Starts dark to match the statically rendered markup, then syncs to
+  // whatever the pre-paint script already applied.
   const [theme, setTheme] = useState<Theme>('dark')
 
-  // Read the preference after mount. Doing it during render would mismatch
-  // the statically generated HTML, which is always emitted dark.
   useEffect(() => {
-    setTheme(preferred())
+    const applied = document.documentElement.dataset.theme
+    if (applied === 'light' || applied === 'dark') setTheme(applied)
   }, [])
 
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme
+  function choose(next: Theme) {
+    setTheme(next)
+    document.documentElement.dataset.theme = next
     try {
-      localStorage.setItem(KEY, theme)
+      localStorage.setItem(KEY, next)
     } catch {
       // A remembered theme is a convenience, not a requirement.
     }
-  }, [theme])
+  }
 
-  const next = theme === 'dark' ? 'light' : 'dark'
+  const next: Theme = theme === 'dark' ? 'light' : 'dark'
 
   return (
     <button
       type="button"
       className="themeToggle"
-      onClick={() => setTheme(next)}
+      onClick={() => choose(next)}
       aria-label={`Switch to ${next} theme`}
+      title={`Switch to ${next} theme`}
     >
-      {theme === 'dark' ? 'Light' : 'Dark'}
+      <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={16} />
     </button>
   )
 }

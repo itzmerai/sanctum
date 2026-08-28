@@ -9,6 +9,7 @@
 import '../styles/app-tokens.css'
 import '../styles/site.css'
 import '../components/app/replica.css'
+import { ThemeToggle } from '../components/app/ThemeToggle'
 
 interface Props {
   title: string
@@ -16,6 +17,7 @@ interface Props {
 }
 
 const { title, description } = Astro.props
+const base = import.meta.env.BASE_URL
 const url = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname
 const nav = [
   { href: 'guide/', label: 'Guide' },
@@ -40,18 +42,39 @@ const nav = [
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
 
+    <link rel="icon" type="image/png" href={`${base}favicon.png`} />
     <meta name="color-scheme" content="dark light" />
+
+    {/*
+      Applies the remembered theme before the first paint, on every page.
+      Inline and blocking on purpose: deferring it means the page renders dark,
+      then flips - and doing it only where the toggle lives is why the guide
+      and download pages used to ignore the choice entirely.
+    */}
+    <script is:inline>
+      try {
+        var stored = localStorage.getItem('sanctum.site.theme')
+        if (stored !== 'light' && stored !== 'dark') {
+          stored = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+        }
+        document.documentElement.dataset.theme = stored
+      } catch (e) {
+        /* Blocked storage is not a reason to fail to render. */
+      }
+    </script>
   </head>
 
   <body>
     <header class="siteHeader">
-      <a class="siteHeader__brand" href={import.meta.env.BASE_URL}>
-        <span class="siteHeader__mark"></span>
+      <a class="siteHeader__brand" href={base}>
+        <img class="siteHeader__mark siteHeader__mark--dark" src={`${base}brand/mark-dark.png`} alt="" width="30" height="30" />
+        <img class="siteHeader__mark siteHeader__mark--light" src={`${base}brand/mark-light.png`} alt="" width="30" height="30" />
         Sanctum
       </a>
       <nav class="siteHeader__nav">
-        {nav.map((item) => <a href={`${import.meta.env.BASE_URL}${item.href}`}>{item.label}</a>)}
+        {nav.map((item) => <a href={`${base}${item.href}`}>{item.label}</a>)}
         <a href="https://github.com/itzmerai/sanctum">Source</a>
+        <ThemeToggle client:idle />
       </nav>
     </header>
 

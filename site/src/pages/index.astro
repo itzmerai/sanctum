@@ -10,16 +10,15 @@
  */
 import Base from '../layouts/Base.astro'
 import { DashboardReplica, VaultReplica, EnvReplica } from '../components/app/Replicas'
-import { ThemeToggle } from '../components/app/ThemeToggle'
 
 const base = import.meta.env.BASE_URL
 
 const holds = [
-  ['Credentials', 'Logins with usernames, URLs, notes and folders. Masked until you ask.'],
-  ['Env files', 'One record per project and environment, stored byte for byte - comments and key order intact.'],
+  ['Credentials', 'Logins with usernames, URLs, notes and folders. Masked until you ask for them.'],
+  ['Env files', 'One record per project and environment, kept byte for byte - comments and key order intact.'],
   ['Notes', 'Free-form notes with labels and favourites.'],
   ['Tasks', 'Due dates, overdue highlighting, completion.'],
-  ['Income', 'Client payments with monthly totals.'],
+  ['Income', 'Client payments with monthly and all-time totals.'],
   ['Calendar', 'Tasks and income laid out by month.'],
 ]
 ---
@@ -29,21 +28,26 @@ const holds = [
   description="Credentials, .env files, notes, tasks and income in one encrypted vault on your own machine. No account, no sync, no server."
 >
   <section class="hero wrap">
-    <div>
-      <h1>Your client work, encrypted on your own machine.</h1>
-      <p>
-        Sanctum is a Windows vault for freelance developers. Credentials, <code>.env</code> files,
-        notes, tasks and income live in one encrypted SQLite file on your machine. There is no
-        account, no sync, and no server &mdash; nothing to sign up for and nothing to breach.
-      </p>
-      <div class="heroActions">
-        <a class="btn btn--primary" href={`${base}download/`}>Download for Windows</a>
-        <a class="btn" href={`${base}guide/`}>Read the guide</a>
-        <ThemeToggle client:idle />
-      </div>
+    <p class="eyebrow">Offline vault for Windows</p>
+    <h1>Your client work, encrypted on your own machine.</h1>
+    <p class="lede">
+      Sanctum is a vault for freelance developers. Credentials, <code>.env</code> files, notes,
+      tasks and income live in one encrypted file on your machine. There is no account, no sync,
+      and no server &mdash; nothing to sign up for and nothing to breach.
+    </p>
+    <div class="heroActions">
+      <a class="btn btn-primary" href={`${base}download/`}>Download for Windows</a>
+      <a class="btn" href={`${base}guide/`}>Read the guide</a>
     </div>
-    <DashboardReplica />
   </section>
+
+  <div class="stage wrap">
+    <DashboardReplica />
+    <p class="stageNote">
+      Not a screenshot. This is rendered from the app&rsquo;s own design tokens, so it changes when
+      the app does &mdash; try the theme switch above.
+    </p>
+  </div>
 
   <section class="section wrap">
     <h2>What it holds</h2>
@@ -92,7 +96,7 @@ const holds = [
           <li>Copies are kept out of Windows clipboard history and cloud sync, and cleared automatically.</li>
         </ul>
       </article>
-      <article class="tile">
+      <article class="tile tile--warn">
         <h3>The limits</h3>
         <ul class="plainList">
           <li><strong>Unaudited.</strong> The constructions are conventional, but no third party has reviewed them.</li>
@@ -105,12 +109,15 @@ const holds = [
     </div>
   </section>
 
-  <section class="section wrap">
+  <section class="section wrap closing">
     <h2>Get it</h2>
     <p>
       Version 0.1.0, for Windows 10 and 11. The download page shows the checksum and explains the
       SmartScreen warning you will see.
     </p>
-    <a class="btn btn--primary" href={`${base}download/`}>Download for Windows</a>
+    <div class="heroActions">
+      <a class="btn btn-primary" href={`${base}download/`}>Download for Windows</a>
+      <a class="btn" href="https://github.com/itzmerai/sanctum">Read the source</a>
+    </div>
   </section>
 </Base>

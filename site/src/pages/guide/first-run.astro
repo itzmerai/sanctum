@@ -1,57 +1,94 @@
 ---
-/**
- * First run (U7: R8, R9).
- *
- * The recovery code section is the important one. Sanctum genuinely cannot
- * recover a lost passphrase, and a guide that soft-pedals that leaves people
- * to discover it at the worst possible moment.
- */
-import Base from '../../layouts/Base.astro'
+import Guide from '../../layouts/Guide.astro'
+import Callout from '../../components/Callout.astro'
 import Steps from '../../components/Steps.astro'
 ---
 
-<Base
-  title="First run - Sanctum guide"
+<Guide
+  slug="first-run"
+  title="First run"
   description="Create your vault, choose a passphrase, and save the recovery code that is shown only once."
+  lede="Setting up takes about a minute. One step of it cannot be undone later, so it is worth understanding before you click through it."
 >
-  <section class="section wrap" style="border-top: none;">
-    <h2>First run</h2>
-    <p>Setting up takes about a minute. One step of it cannot be undone later.</p>
+  <h2>What happens when you open Sanctum</h2>
+  <p>
+    There is no account to create, no email to confirm, and nothing sent anywhere. The first
+    window asks you to choose a passphrase, and that passphrase is what creates the vault. Until
+    you set one, there is no vault file on disk at all.
+  </p>
 
-    <Steps steps={[
-      'Run the installer and open Sanctum. There is no account to create and nothing to sign in to.',
-      'Choose a passphrase. Sanctum requires a strength score of at least 3 and twelve characters &mdash; a few unrelated words beat a short scramble, and are easier to type twice a day.',
-      'Wait a moment on first launch. Sanctum calibrates its key derivation to your machine, aiming for about three quarters of a second per unlock. A slower machine gets easier settings so unlocking stays usable; a faster one gets harder settings for free.',
-      '<strong>Write down the recovery code.</strong> It is six groups of five characters, shown once, and it is the only other way into your vault.',
-      'Confirm you have saved it. Sanctum will not show it again.',
-    ]} />
-  </section>
+  <Steps steps={[
+    'Run the installer and open Sanctum. Windows will warn you about the unsigned installer &mdash; the <a href="../../download/">download page</a> explains why and what to do.',
+    'Type a passphrase, twice. Sanctum shows a live strength meter as you type.',
+    'Wait a moment. On first launch only, Sanctum measures how fast your machine is and tunes its key derivation to match.',
+    '<strong>Write down the recovery code.</strong> Six groups of five characters. It is displayed once and never again.',
+    'Confirm you have saved it. The vault opens, empty.',
+  ]} />
 
-  <section class="section wrap">
-    <h2>What the recovery code actually does</h2>
-    <p>
-      Your passphrase does not unlock records directly. It unwraps a key, and that key decrypts
-      your data. The recovery code unwraps a second copy of the same key &mdash; which is why it
-      can let you back in after a forgotten passphrase, and why it is exactly as sensitive as the
-      passphrase itself.
-    </p>
-    <p>
-      Keep it somewhere separate from the machine running Sanctum. A password manager you already
-      trust, a printed copy in a drawer, a safe. Not a note on the same desktop.
-    </p>
-  </section>
+  <h2>Choosing a passphrase</h2>
+  <p>
+    Sanctum requires a strength score of at least 3 out of 4 <em>and</em> a minimum of twelve
+    characters. Both, not either. The strength score comes from zxcvbn, which estimates how many
+    guesses an attacker would need &mdash; it knows about common passwords, keyboard patterns,
+    dates, and names, so <code>P@ssw0rd123!</code> scores badly despite looking complicated.
+  </p>
+  <p>
+    Four unrelated words beat a short scramble on both counts, and you will be typing this twice a
+    day. Pick something you can type without looking.
+  </p>
 
-  <section class="section wrap">
-    <h2>If you lose both</h2>
+  <Callout kind="note" title="Why the pause on first launch">
     <p>
-      The data is gone. There is no reset link, no support address that can help, and no backdoor
-      &mdash; the key is derived from your passphrase and nothing else stores it. That is what makes
-      the vault worth using, and it is a real risk you are accepting.
+      Sanctum stretches your passphrase with Argon2id, which is deliberately slow and
+      memory-hungry so that guessing it in bulk is expensive. How slow depends on your hardware,
+      so rather than picking a fixed setting, Sanctum measures your machine and calibrates to
+      about three quarters of a second per unlock.
     </p>
     <p>
-      The practical answer is a backup: an encrypted <code>.sanctumbak</code> file with its own
-      password, kept somewhere else. If the passphrase goes, the backup and its password are what
-      is left.
+      A slower laptop gets gentler settings so unlocking stays usable. A faster desktop gets
+      harder settings for free. The parameters are stored in the vault header, so your vault
+      always opens with the settings it was created with &mdash; even on a different machine.
     </p>
-  </section>
-</Base>
+  </Callout>
+
+  <h2>The recovery code</h2>
+  <p>
+    Your passphrase does not unlock your records directly. It unwraps a key, and that key decrypts
+    your data. The recovery code unwraps a second copy of that same key.
+  </p>
+  <p>
+    Two things follow from that. It can let you back in after a forgotten passphrase &mdash; that
+    is its whole purpose. And it is exactly as sensitive as the passphrase itself, because it
+    opens exactly the same door.
+  </p>
+
+  <Callout kind="warn" title="Store it somewhere else">
+    <p>
+      A recovery code saved on the same machine as the vault protects you from forgetting, and
+      from nothing else. A stolen laptop takes both.
+    </p>
+    <p>
+      A password manager you already trust, a printed copy in a drawer, or a safe are all fine. A
+      note on the desktop is not.
+    </p>
+  </Callout>
+
+  <h2>If you lose both</h2>
+  <p>
+    The data is gone. There is no reset link, no support address that can help, and no backdoor.
+    The key is derived from your passphrase and nothing else stores it, which is precisely what
+    makes the vault worth using &mdash; and precisely what makes this irreversible.
+  </p>
+  <p>
+    The practical answer is a backup, covered in <a href="../backups/">the last guide</a>: an
+    encrypted file with its own password, kept somewhere else. If the passphrase goes, that file
+    and its password are what remain.
+  </p>
+
+  <h2>What is set up for you</h2>
+  <ul class="plainList">
+    <li><strong>Auto-lock after five minutes idle.</strong> The key is dropped from memory, not just hidden. Adjustable in Settings.</li>
+    <li><strong>Website icons off.</strong> Fetching a site's favicon would tell that site you hold a credential for it. Off by default; yours to turn on.</li>
+    <li><strong>Clipboard protection on.</strong> Copies are excluded from Windows clipboard history and cloud sync, and cleared after thirty seconds.</li>
+  </ul>
+</Guide>

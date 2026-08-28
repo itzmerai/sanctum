@@ -1,0 +1,20 @@
+---
+/**
+ * An aside that earns attention (U7).
+ *
+ * Three kinds only. `danger` is reserved for the handful of places where
+ * getting it wrong loses data permanently - if everything is a warning,
+ * nothing is.
+ */
+interface Props {
+  kind?: 'note' | 'warn' | 'danger'
+  title: string
+}
+
+const { kind = 'note', title } = Astro.props
+---
+
+<aside class={`callout callout--${kind}`}>
+  <p class="callout__title">{title}</p>
+  <div class="callout__body"><slot /></div>
+</aside>

@@ -2,7 +2,9 @@
  *
  * Every value here is a token from the app. There are no literal colours in
  * this file by design - a hardcoded hex would be the exact drift KTD3 exists
- * to prevent, and `replica.test.ts` asserts their absence.
+ * to prevent, and `output.test.ts` asserts their absence. The one place a
+ * literal colour appears at all is the tile tint, which is imported from the
+ * app's own `tintFor` rather than written here.
  */
 
 .frame {
@@ -13,8 +15,9 @@
   color: var(--text);
   font-family: var(--font-mono);
   font-size: var(--fs-item);
-  box-shadow: 0 24px 60px -30px rgb(0 0 0 / 55%);
+  box-shadow: 0 30px 70px -35px rgb(0 0 0 / 60%);
   user-select: none;
+  container-type: inline-size;
 }
 
 /* --- titlebar ------------------------------------------------------------ */
@@ -27,41 +30,71 @@
   padding: 0 var(--sp-3);
   background: var(--bg-titlebar);
   border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+.frame__left {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
 }
 
 .frame__brand {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
+  color: var(--text);
   font-size: var(--fs-meta);
-}
-
-.frame__mark {
-  width: 16px;
-  height: 16px;
-  border-radius: var(--r-icon);
-  background: var(--accent);
 }
 
 .frame__search {
   justify-self: center;
-  padding: 3px var(--sp-5);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 3px var(--sp-3);
   border: 1px solid var(--border);
   border-radius: var(--r-pill);
+  background: var(--bg-surface);
   color: var(--text-faint);
   font-size: var(--fs-meta);
+  white-space: nowrap;
+}
+
+.frame__kbd {
+  padding: 1px var(--sp-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-app);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
 }
 
 .frame__windowControls {
   justify-self: end;
   display: flex;
-  gap: var(--sp-3);
+  align-items: center;
+  gap: var(--sp-4);
+  color: var(--text-faint);
 }
 
-.frame__windowControls i {
-  width: 10px;
+.frame__min,
+.frame__max {
+  display: block;
+  width: 11px;
+  height: 11px;
+}
+
+.frame__min {
   height: 1px;
-  background: var(--text-faint);
+  background: currentColor;
+  align-self: center;
+}
+
+.frame__max {
+  border: 1px solid currentColor;
+  border-radius: 2px;
 }
 
 /* --- sidebar ------------------------------------------------------------- */
@@ -69,29 +102,51 @@
 .frame__body {
   display: grid;
   grid-template-columns: var(--sidebar-w) 1fr;
-  min-height: 380px;
+  min-height: 520px;
+}
+
+.frame--compact .frame__body {
+  grid-template-columns: 1fr;
+  min-height: 0;
 }
 
 .frame__sidebar {
+  display: flex;
+  flex-direction: column;
   background: var(--bg-sidebar);
   border-right: 1px solid var(--border);
-  padding: var(--sp-3) 0;
+  padding: var(--sp-3) 0 var(--sp-4);
+}
+
+.frame__spacer {
+  flex: 1;
+  min-height: var(--sp-6);
+  margin: var(--sp-4) var(--sp-3) var(--sp-3);
+  border-bottom: 1px solid var(--border);
 }
 
 .frame__you {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  padding: 0 var(--sp-3) var(--sp-3);
+  padding: var(--sp-1) var(--sp-3) var(--sp-4);
   font-size: var(--fs-item);
 }
 
 .frame__avatar {
-  width: 22px;
-  height: 22px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
   border-radius: var(--r-pill);
   background: var(--accent-soft);
+  color: var(--accent);
   border: 1px solid var(--accent);
+}
+
+.frame__themeIcon {
+  margin-left: auto;
+  color: var(--text-faint);
 }
 
 .frame__label {
@@ -104,16 +159,20 @@
 }
 
 .frame__nav {
-  display: block;
-  padding: var(--sp-2) var(--sp-3);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin: 1px var(--sp-2);
+  padding: var(--sp-2) var(--sp-2);
+  border-radius: var(--r-btn);
   color: var(--text-dim);
   font-size: var(--fs-item);
+  white-space: nowrap;
 }
 
 .frame__nav[data-on='true'] {
   background: var(--bg-active);
   color: var(--text);
-  box-shadow: inset 2px 0 0 var(--accent);
 }
 
 .frame__content {
@@ -121,7 +180,26 @@
   overflow: hidden;
 }
 
-/* --- shared content pieces ----------------------------------------------- */
+/* --- dashboard ----------------------------------------------------------- */
+
+.dash {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: var(--sp-4);
+  align-items: start;
+}
+
+.dash__rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.rep__greeting {
+  margin: 0 0 var(--sp-1);
+  font-size: var(--fs-greeting);
+  letter-spacing: 0.04em;
+}
 
 .rep__title {
   margin: 0 0 var(--sp-1);
@@ -139,7 +217,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--sp-3);
-  margin-bottom: var(--sp-4);
+  margin-bottom: var(--sp-3);
 }
 
 .rep__stat {
@@ -150,7 +228,9 @@
 }
 
 .rep__statLabel {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
   color: var(--text-dim);
   font-size: var(--fs-label);
   letter-spacing: var(--tracking-label);
@@ -159,16 +239,136 @@
 
 .rep__statValue {
   display: block;
-  margin-top: var(--sp-1);
+  margin-top: var(--sp-2);
   font-size: var(--fs-stat);
 }
+
+/* --- callout ------------------------------------------------------------- */
+
+.rep__callout {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  margin-bottom: var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  background: var(--bg-surface);
+  font-size: var(--fs-meta);
+}
+
+.rep__link {
+  margin-left: auto;
+  color: var(--text-dim);
+  font-size: var(--fs-meta);
+}
+
+/* --- cards --------------------------------------------------------------- */
 
 .rep__card {
   border: 1px solid var(--border);
   border-radius: var(--r-card);
   background: var(--bg-surface);
   overflow: hidden;
+  margin-bottom: var(--sp-3);
 }
+
+.dash__rail .rep__card {
+  margin-bottom: 0;
+}
+
+.rep__cardHead {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.rep__cardTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-section);
+}
+
+.rep__cardBody {
+  padding: var(--sp-3);
+}
+
+.rep__pill {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-left: auto;
+  padding: 2px var(--sp-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  color: var(--text-dim);
+  font-size: var(--fs-label);
+}
+
+/* --- dots ---------------------------------------------------------------- */
+
+.rep__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-pill);
+  flex: none;
+  background: var(--text-faint);
+}
+
+.rep__dot--ok {
+  background: var(--accent);
+}
+
+.rep__dot--warn,
+.rep__dot--med {
+  background: var(--pri-med-text, var(--text-dim));
+}
+
+.rep__dot--high {
+  background: var(--danger, var(--text));
+}
+
+/* --- income -------------------------------------------------------------- */
+
+.rep__miniStats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+
+.rep__mini {
+  padding: var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-input);
+  background: var(--bg-app);
+}
+
+.rep__miniValue {
+  display: block;
+  margin-top: var(--sp-1);
+  font-size: var(--fs-section);
+}
+
+.rep__chart {
+  display: block;
+  width: 100%;
+  height: 70px;
+  color: var(--accent);
+}
+
+.rep__months {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--sp-2);
+  color: var(--text-faint);
+  font-size: var(--fs-label);
+}
+
+/* --- rows ---------------------------------------------------------------- */
 
 .rep__row {
   display: grid;
@@ -177,25 +377,31 @@
   gap: var(--sp-3);
   padding: var(--sp-3);
   border-bottom: 1px solid var(--border);
+  color: var(--text-faint);
+}
+
+.rep__row--vault {
+  grid-template-columns: auto 1fr auto auto;
 }
 
 .rep__row:last-child {
   border-bottom: none;
 }
 
-.rep__icon {
-  width: 28px;
-  height: 28px;
+.rep__tile {
   display: grid;
   place-items: center;
+  width: 32px;
+  height: 32px;
   border-radius: var(--r-icon);
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: var(--fs-meta);
+  color: var(--bg-app);
+  font-size: var(--fs-item);
+  flex: none;
 }
 
 .rep__name {
   display: block;
+  color: var(--text);
 }
 
 .rep__meta {
@@ -211,6 +417,12 @@
   letter-spacing: 0.16em;
 }
 
+.rep__actions {
+  display: flex;
+  gap: var(--sp-3);
+  color: var(--text-faint);
+}
+
 .rep__chip {
   padding: 2px var(--sp-2);
   border: 1px solid var(--border);
@@ -219,25 +431,147 @@
   font-size: var(--fs-label);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.rep__actions {
+/* --- toolbar ------------------------------------------------------------- */
+
+.rep__toolbar {
   display: flex;
   gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+
+.rep__field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: var(--control-h);
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-input);
+  background: var(--bg-input);
   color: var(--text-faint);
   font-size: var(--fs-meta);
 }
 
-/* --- responsive ---------------------------------------------------------- */
-
-.frame--compact .frame__body {
-  min-height: 260px;
+.rep__select {
+  display: flex;
+  align-items: center;
+  height: var(--control-h);
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-input);
+  background: var(--bg-input);
+  color: var(--text-dim);
+  font-size: var(--fs-meta);
+  white-space: nowrap;
 }
 
-@media (max-width: 720px) {
-  .frame__body {
-    grid-template-columns: var(--sidebar-rail-w);
-    grid-template-areas: 'content';
+.rep__add {
+  display: grid;
+  place-items: center;
+  width: var(--control-h);
+  height: var(--control-h);
+  border-radius: var(--r-input);
+  background: var(--accent);
+  color: var(--text-oncolor);
+}
+
+/* --- rail pieces --------------------------------------------------------- */
+
+.rep__clock,
+.rep__task,
+.rep__check {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-meta);
+}
+
+.rep__clock {
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+
+.rep__badge {
+  margin-left: var(--sp-2);
+  padding: 1px var(--sp-2);
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: var(--fs-label);
+}
+
+.rep__time {
+  color: var(--text-dim);
+}
+
+.rep__taskName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-dim);
+}
+
+.rep__due,
+.rep__check .rep__meta {
+  margin-left: auto;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.rep__score {
+  margin: 0;
+  font-size: var(--fs-stat);
+}
+
+.rep__scoreLabel {
+  margin: 0 0 var(--sp-3);
+  color: var(--text-dim);
+  font-size: var(--fs-meta);
+}
+
+.rep__bar {
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: var(--bg-app);
+  overflow: hidden;
+  margin-bottom: var(--sp-3);
+}
+
+.rep__bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.rep__check {
+  padding-inline: 0;
+}
+
+.rep__button {
+  display: grid;
+  place-items: center;
+  height: var(--control-h);
+  margin-top: var(--sp-3);
+  border-radius: var(--r-btn);
+  background: var(--accent);
+  color: var(--text-oncolor);
+  font-size: var(--fs-body);
+}
+
+/* --- responsive ---------------------------------------------------------- */
+
+/* Container queries, not viewport ones: the frame is a fixed-width illustration
+   inside a fluid column, so what matters is how wide the frame itself got. */
+@container (max-width: 760px) {
+  .dash {
+    grid-template-columns: 1fr;
   }
 
   .frame__sidebar {
@@ -247,8 +581,15 @@
   .frame__body {
     grid-template-columns: 1fr;
   }
+}
 
-  .rep__stats {
+@container (max-width: 460px) {
+  .rep__stats,
+  .rep__miniStats {
     grid-template-columns: 1fr;
+  }
+
+  .frame__search {
+    display: none;
   }
 }

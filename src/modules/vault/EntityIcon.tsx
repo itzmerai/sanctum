@@ -6,17 +6,8 @@
  * Real favicons are U12 and are off by default (R24) -- until then this is
  * the icon, not a placeholder for one.
  */
+import { tintFor } from '../../lib/tints'
 import { useFavicon } from './useFavicon'
-
-const TINTS = ['#e8734a', '#4a7fc1', '#4aa86a', '#8b6ec9', '#e0a63c', '#d64550', '#4a9c9c']
-
-function tintFor(seed: string): string {
-  // Sum of code points, not a hash: this only needs to be stable and spread
-  // out, and a cryptographic hash here would be noise.
-  let total = 0
-  for (let i = 0; i < seed.length; i++) total += seed.charCodeAt(i)
-  return TINTS[total % TINTS.length]!
-}
 
 interface Props {
   name: string

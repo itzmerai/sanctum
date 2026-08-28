@@ -1,0 +1,83 @@
+---
+/**
+ * The shell every guide page shares (U7).
+ *
+ * Carries the way back to the landing page, the position in the sequence, and
+ * the next step - a guide that ends in a dead end makes the reader hunt for
+ * what follows.
+ */
+import Base from './Base.astro'
+
+export const GUIDES = [
+  { slug: 'first-run', title: 'First run', blurb: 'Create the vault, choose a passphrase, and save the recovery code.' },
+  { slug: 'credentials', title: 'Saving a credential', blurb: 'Add a login, reveal it, and copy it without leaving a trail.' },
+  { slug: 'env-files', title: 'Storing a .env', blurb: 'Import a file, keep it byte for byte, copy one key or all of it.' },
+  { slug: 'backups', title: 'Backups and recovery', blurb: 'Take an encrypted backup, and know what to do when things go wrong.' },
+]
+
+interface Props {
+  slug: string
+  title: string
+  description: string
+  lede: string
+}
+
+const { slug, title, description, lede } = Astro.props
+const base = import.meta.env.BASE_URL
+
+const index = GUIDES.findIndex((guide) => guide.slug === slug)
+const previous = index > 0 ? GUIDES[index - 1] : null
+const next = index < GUIDES.length - 1 ? GUIDES[index + 1] : null
+---
+
+<Base title={`${title} - Sanctum guide`} description={description}>
+  <div class="doc wrap">
+    <aside class="doc__rail">
+      <a class="backLink" href={base}>&larr; Landing page</a>
+      <p class="doc__railLabel">Guide</p>
+      <ol class="doc__toc">
+        {GUIDES.map((guide, position) => (
+          <li>
+            <a href={`${base}guide/${guide.slug}/`} data-on={guide.slug === slug}>
+              <span class="doc__num">{position + 1}</span>
+              {guide.title}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </aside>
+
+    <article class="doc__body">
+      <p class="eyebrow">Step {index + 1} of {GUIDES.length}</p>
+      <h1>{title}</h1>
+      <p class="lede">{lede}</p>
+
+      <slot />
+
+      <nav class="doc__nav">
+        {previous ? (
+          <a class="doc__navLink" href={`${base}guide/${previous.slug}/`}>
+            <span class="doc__navLabel">Previous</span>
+            {previous.title}
+          </a>
+        ) : (
+          <a class="doc__navLink" href={base}>
+            <span class="doc__navLabel">Back to</span>
+            Landing page
+          </a>
+        )}
+        {next ? (
+          <a class="doc__navLink doc__navLink--next" href={`${base}guide/${next.slug}/`}>
+            <span class="doc__navLabel">Next</span>
+            {next.title}
+          </a>
+        ) : (
+          <a class="doc__navLink doc__navLink--next" href={`${base}download/`}>
+            <span class="doc__navLabel">Ready</span>
+            Download Sanctum
+          </a>
+        )}
+      </nav>
+    </article>
+  </div>
+</Base>
