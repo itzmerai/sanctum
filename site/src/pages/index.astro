@@ -1,0 +1,123 @@
+---
+/**
+ * The landing page (U5: R1-R7).
+ *
+ * The security section states the primitives and the limits at the same
+ * visual weight. That is deliberate: this is an unaudited, unsigned 0.1.0
+ * asking people to trust it with production credentials, and a page that
+ * mentions Argon2id loudly while whispering "unaudited" is selling something
+ * it has not earned.
+ */
+import Base from '../layouts/Base.astro'
+import { DashboardReplica, VaultReplica, EnvReplica } from '../components/app/Replicas'
+
+const base = import.meta.env.BASE_URL
+
+const holds = [
+  ['Credentials', 'Logins with usernames, URLs, notes and folders. Masked until you ask for them.'],
+  ['Env files', 'One record per project and environment, kept byte for byte - comments and key order intact.'],
+  ['Notes', 'Free-form notes with labels and favourites.'],
+  ['Tasks', 'Due dates, overdue highlighting, completion.'],
+  ['Income', 'Client payments with monthly and all-time totals.'],
+  ['Calendar', 'Tasks and income laid out by month.'],
+]
+---
+
+<Base
+  title="Sanctum - an offline vault for freelance developers"
+  description="Credentials, .env files, notes, tasks and income in one encrypted vault on your own machine. No account, no sync, no server."
+>
+  <section class="hero wrap">
+    <p class="eyebrow">Offline vault for Windows</p>
+    <h1>Your client work, encrypted on your own machine.</h1>
+    <p class="lede">
+      Sanctum is a vault for freelance developers. Credentials, <code>.env</code> files, notes,
+      tasks and income live in one encrypted file on your machine. There is no account, no sync,
+      and no server &mdash; nothing to sign up for and nothing to breach.
+    </p>
+    <div class="heroActions">
+      <a class="btn btn-primary" href={`${base}download/`}>Download for Windows</a>
+      <a class="btn" href={`${base}guide/`}>Read the guide</a>
+    </div>
+  </section>
+
+  <div class="stage wrap">
+    <DashboardReplica />
+    <p class="stageNote">
+      Not a screenshot. This is rendered from the app&rsquo;s own design tokens, so it changes when
+      the app does &mdash; try the theme switch above.
+    </p>
+  </div>
+
+  <section class="section wrap">
+    <h2>What it holds</h2>
+    <p>
+      A password manager holds your logins. Sanctum holds the rest of the job as well &mdash; the
+      things a freelancer juggles across several clients at once.
+    </p>
+    <div class="grid">
+      {holds.map(([name, detail]) => (
+        <article class="tile">
+          <h3>{name}</h3>
+          <p>{detail}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="section wrap">
+    <h2>The one it was built for</h2>
+    <p>
+      A <code>.env</code> is the file that actually carries the damage: the production database
+      URI, the Stripe key, the AWS credentials. Sanctum stores it exactly as written, shows each
+      key masked, and copies one value or the whole file through a clipboard that Windows history
+      and cloud sync never see.
+    </p>
+    <div class="showcase">
+      <EnvReplica />
+      <VaultReplica />
+    </div>
+  </section>
+
+  <section class="section wrap">
+    <h2>How it is protected, and what that does not cover</h2>
+    <p>
+      Both halves belong on the same page. The first is what the software does; the second is what
+      it cannot do for you.
+    </p>
+    <div class="twoUp">
+      <article class="tile">
+        <h3>The protection</h3>
+        <ul class="plainList">
+          <li>Your passphrase is stretched with Argon2id, calibrated on first run to your hardware.</li>
+          <li>Each field is encrypted with AES-256-GCM under a fresh nonce.</li>
+          <li>Every ciphertext is bound to its own row and column, so a moved value fails rather than authenticating somewhere else.</li>
+          <li>Everything lives in one local SQLite file. The app makes no network request unless you turn website icons on.</li>
+          <li>Copies are kept out of Windows clipboard history and cloud sync, and cleared automatically.</li>
+        </ul>
+      </article>
+      <article class="tile tile--warn">
+        <h3>The limits</h3>
+        <ul class="plainList">
+          <li><strong>Unaudited.</strong> The constructions are conventional, but no third party has reviewed them.</li>
+          <li><strong>Unsigned.</strong> Installers carry no Authenticode signature, so Windows will warn you.</li>
+          <li><strong>Windows only.</strong> The clipboard protections use Windows-specific formats.</li>
+          <li><strong>No sync.</strong> Your vault exists on one machine. Take backups.</li>
+          <li><strong>Lose the passphrase and the recovery code, and the data is gone.</strong> There is no reset, no email, and no backdoor. That is the design, and it cuts both ways.</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="section wrap closing">
+    <h2>Get it</h2>
+    <p>
+      Version 0.1.0, for Windows 10 and 11. The download page shows the checksum and explains the
+      SmartScreen warning you will see.
+    </p>
+    <div class="heroActions">
+      <a class="btn btn-primary" href={`${base}download/`}>Download for Windows</a>
+      <a class="btn" href="https://github.com/itzmerai/sanctum">Read the source</a>
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,94 @@
+---
+/**
+ * The document shell (U5).
+ *
+ * Owns the head, which is where the case for Astro actually lives: these meta
+ * tags are in the served HTML, so a link pasted into Slack renders a real card
+ * rather than the empty one a client-rendered page produces (AE1).
+ */
+import '../styles/app-tokens.css'
+import '../styles/site.css'
+import '../components/app/replica.css'
+import { ThemeToggle } from '../components/app/ThemeToggle'
+
+interface Props {
+  title: string
+  description: string
+}
+
+const { title, description } = Astro.props
+const base = import.meta.env.BASE_URL
+const url = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname
+const nav = [
+  { href: 'guide/', label: 'Guide' },
+  { href: 'download/', label: 'Download' },
+]
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark" data-accent="slate" data-size="medium">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={url} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={url} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <link rel="icon" type="image/png" href={`${base}favicon.png`} />
+    <meta name="color-scheme" content="dark light" />
+
+    {/*
+      Applies the remembered theme before the first paint, on every page.
+      Inline and blocking on purpose: deferring it means the page renders dark,
+      then flips - and doing it only where the toggle lives is why the guide
+      and download pages used to ignore the choice entirely.
+    */}
+    <script is:inline>
+      try {
+        var stored = localStorage.getItem('sanctum.site.theme')
+        if (stored !== 'light' && stored !== 'dark') {
+          stored = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+        }
+        document.documentElement.dataset.theme = stored
+      } catch (e) {
+        /* Blocked storage is not a reason to fail to render. */
+      }
+    </script>
+  </head>
+
+  <body>
+    <header class="siteHeader">
+      <a class="siteHeader__brand" href={base}>
+        <img class="siteHeader__mark siteHeader__mark--dark" src={`${base}brand/mark-dark.png`} alt="" width="30" height="30" />
+        <img class="siteHeader__mark siteHeader__mark--light" src={`${base}brand/mark-light.png`} alt="" width="30" height="30" />
+        Sanctum
+      </a>
+      <nav class="siteHeader__nav">
+        {nav.map((item) => <a href={`${base}${item.href}`}>{item.label}</a>)}
+        <a href="https://github.com/itzmerai/sanctum">Source</a>
+        <ThemeToggle client:idle />
+      </nav>
+    </header>
+
+    <slot />
+
+    <footer class="siteFooter">
+      <p>
+        Sanctum is an offline vault for Windows. It is version 0.1.0, has not been independently
+        audited, and its installers are not yet code-signed.
+      </p>
+      <p class="siteFooter__legal">
+        Copyright &copy; 2026 Sanctum. All rights reserved. The source is published for
+        inspection; it is not open source.
+      </p>
+    </footer>
+  </body>
+</html>

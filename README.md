@@ -104,8 +104,24 @@ src-tauri/
   src/vault/    Schema, migrations, encrypted store, entities
   src/backup/   Encrypted .sanctumbak containers, CSV export
   src/commands/ The IPC surface
+site/           The marketing site - a separate workspace
 docs/           Packaging and visual reference
 ```
+
+`site/` has its own `package.json` and its own `node_modules`. Running
+`npm install` at the repo root does not install its dependencies, and it does
+not install the app's — they are deliberately separate so the site's toolchain
+never enters the desktop build. To work on the site:
+
+```bash
+cd site
+npm install
+npm run dev
+```
+
+The site imports the app's `src/theme/tokens.css` directly rather than copying
+it, so the interface shown on the page cannot drift from the interface the app
+actually renders.
 
 ## License
 

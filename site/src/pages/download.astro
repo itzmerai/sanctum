@@ -1,0 +1,187 @@
+---
+/**
+ * The download page (U6: R10-R14).
+ *
+ * Shares the `doc` layout with the guide so the two read as one set of
+ * documents. The SmartScreen warning is stated up front, at full weight, with
+ * the reason and the steps - burying it would get more installs and fewer
+ * informed ones, and the people this is for are exactly the people who heed
+ * that warning.
+ */
+import { readFileSync } from 'node:fs'
+
+import Base from '../layouts/Base.astro'
+import Callout from '../components/Callout.astro'
+import Steps from '../components/Steps.astro'
+import { DOWNLOAD_URL, httpFetchers, latestRelease, REPO } from '../lib/release'
+
+const base = import.meta.env.BASE_URL
+
+// The app's own declared version is the fallback when the API is unreachable.
+const conf = JSON.parse(
+  readFileSync(new URL('../../../src-tauri/tauri.conf.json', import.meta.url), 'utf8'),
+)
+const release = await latestRelease(httpFetchers(process.env.GITHUB_TOKEN), conf.version)
+
+const published = release.publishedAt
+  ? new Date(release.publishedAt).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  : null
+
+const sections = [
+  ['warning', 'The Windows warning'],
+  ['verify', 'Verify your download'],
+  ['requirements', 'What you need'],
+  ['limits', 'Before you trust it'],
+]
+---
+
+<Base
+  title="Download Sanctum for Windows"
+  description="Sanctum for Windows 10 and 11. Verify the checksum before you install, and read why Windows will warn you."
+>
+  <div class="doc wrap">
+    <aside class="doc__rail">
+      <a class="backLink" href={base}>&larr; Landing page</a>
+      <p class="doc__railLabel">On this page</p>
+      <ol class="doc__toc">
+        {sections.map(([id, label]) => (
+          <li>
+            <a href={`#${id}`}>{label}</a>
+          </li>
+        ))}
+      </ol>
+    </aside>
+
+    <article class="doc__body">
+      <p class="eyebrow">Windows 10 and 11 &middot; 64-bit</p>
+      <h1>Download Sanctum</h1>
+      <p class="lede">
+        Version {release.version}{published && <> &middot; published {published}</>}. Around
+        3&nbsp;MB.
+        {!release.live && (
+          <> This page could not reach GitHub, so the version shown is the one this build declares.</>
+        )}
+      </p>
+
+      <div class="heroActions dlActions">
+        <a class="btn btn-primary btn--lg" href={DOWNLOAD_URL} rel="noopener">
+          Download Sanctum {release.version}
+        </a>
+        <a class="btn" href={`https://github.com/${REPO}/releases`} rel="noopener">All releases</a>
+      </div>
+
+      <h2 id="warning">The Windows warning</h2>
+      <p>
+        This installer is not code-signed. Windows SmartScreen shows
+        <em>&ldquo;Windows protected your PC&rdquo;</em> and hides the Run button behind
+        <em>More info</em>.
+      </p>
+      <p>
+        That warning is not a false alarm. It is Windows telling you truthfully that it cannot
+        identify who published this file. A code-signing certificate costs a few hundred dollars a
+        year, Sanctum does not have one yet, and the honest thing is to say so rather than talk you
+        past it.
+      </p>
+
+      <Steps steps={[
+        'Verify the checksum below before running anything. This is the step that actually protects you.',
+        'Run the installer. When SmartScreen appears, click <strong>More info</strong>.',
+        'Click <strong>Run anyway</strong>.',
+      ]} />
+
+      <Callout kind="note" title="What signing would and would not change">
+        <p>
+          A certificate proves the publisher is who they claim, and lets Windows build reputation
+          across releases. It does not vouch for the code, and it does not make an early release
+          trustworthy on its own &mdash; a newly signed application still triggers warnings until
+          enough people have installed it.
+        </p>
+        <p>
+          Signing is planned. Until then, the checksum is the real verification, and reading the
+          source is the real assurance.
+        </p>
+      </Callout>
+
+      <h2 id="verify">Verify your download</h2>
+      {release.sha256 ? (
+        <>
+          <p>The SHA-256 of the installer published with this release:</p>
+          <p class="hash"><code>{release.sha256}</code></p>
+          <p>Check yours matches, in PowerShell:</p>
+          <pre class="cmd"><code>Get-FileHash .\Sanctum_{release.version}_x64-setup.exe -Algorithm SHA256</code></pre>
+          <p>
+            If the hashes differ, do not run the file. Either the download was corrupted, or it is
+            not the file that was built.
+          </p>
+        </>
+      ) : (
+        <p>
+          No checksum has been published for this release yet. When one exists it appears as a
+          <code>SHA256SUMS.txt</code> asset on the
+          <a href={`https://github.com/${REPO}/releases`}> release page</a>, and here.
+        </p>
+      )}
+
+      <h2 id="requirements">What you need</h2>
+      <ul class="plainList">
+        <li><strong>Windows 10 or 11</strong>, 64-bit. There is no 32-bit or ARM build.</li>
+        <li>
+          <strong>WebView2</strong>, which ships with Windows 11. On Windows 10 the installer
+          fetches it automatically if it is missing &mdash; the only network request anything here
+          makes.
+        </li>
+        <li>
+          <strong>About 20&nbsp;MB of disk</strong> once installed. Your vault grows with what you
+          put in it.
+        </li>
+        <li>No administrator rights. It installs for the current user.</li>
+      </ul>
+
+      <h2 id="limits">Before you trust it with anything</h2>
+      <div class="twoUp">
+        <article class="tile">
+          <h3>Where it stands</h3>
+          <ul class="plainList">
+            <li>Version 0.1.0. Early, and honest about it.</li>
+            <li>Not independently audited.</li>
+            <li>Not code-signed.</li>
+            <li>Windows only. No macOS or Linux build.</li>
+          </ul>
+        </article>
+        <article class="tile tile--warn">
+          <h3>What you are taking on</h3>
+          <ul class="plainList">
+            <li>No sync and no cloud copy. Take a backup and check you can restore it.</li>
+            <li>
+              Lose your passphrase <em>and</em> your recovery code and the data is gone. No reset,
+              no email, no backdoor.
+            </li>
+            <li>
+              An unlocked vault on a compromised machine is readable. No desktop vault solves that.
+            </li>
+          </ul>
+        </article>
+      </div>
+      <p>
+        The <a href={`${base}guide/`}>guide</a> covers all of this properly, and the
+        <a href={`https://github.com/${REPO}`}> source</a> is readable &mdash; which is the only
+        assurance available until an audit exists.
+      </p>
+
+      <nav class="doc__nav">
+        <a class="doc__navLink" href={`${base}guide/`}>
+          <span class="doc__navLabel">Before you install</span>
+          Read the guide
+        </a>
+        <a class="doc__navLink doc__navLink--next" href={base}>
+          <span class="doc__navLabel">Back to</span>
+          Landing page
+        </a>
+      </nav>
+    </article>
+  </div>
+</Base>

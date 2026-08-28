@@ -11,6 +11,8 @@
  */
 import { useEffect, useRef, useState } from 'react'
 
+import artwork from '../../assets/sanctum-artwork.png'
+
 import { Wordmark } from '../../components/Brand'
 import { Icon } from '../../components/Icon'
 import { WindowControls } from '../../components/WindowControls'
@@ -68,8 +70,14 @@ export function LockScreen({ onUnlocked, onForgotPassword }: Props) {
       </header>
 
       <main className="lock__body">
+        {/*
+          The lock screen is the app's front door, on a fixed dark ground with
+          room to spare - the one place in the app where the full artwork is
+          legible. Everywhere else renders the mark at 16-18px, where the vault
+          door and the woven S turn to noise, and uses the drawn silhouette.
+        */}
         <div className="lock__mark">
-          <Wordmark size={44} />
+          <img src={artwork} alt="Sanctum" width={96} height={96} />
         </div>
 
         <h1 className="lock__tagline">Coded for privacy.</h1>

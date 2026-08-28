@@ -1,0 +1,19 @@
+---
+/**
+ * A numbered sequence for the guides (U7).
+ *
+ * `set:html` renders each step as markup so a step can carry <strong> and
+ * <code>. Safe here because every string is authored in this repo at build
+ * time - there is no user input anywhere on this site, which is also why it
+ * needs no server.
+ */
+interface Props {
+  steps: string[]
+}
+
+const { steps } = Astro.props
+---
+
+<ol class="plainList">
+  {steps.map((step) => <li set:html={step} />)}
+</ol>

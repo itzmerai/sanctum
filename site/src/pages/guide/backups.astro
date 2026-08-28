@@ -1,0 +1,122 @@
+---
+import Guide from '../../layouts/Guide.astro'
+import Callout from '../../components/Callout.astro'
+import Steps from '../../components/Steps.astro'
+---
+
+<Guide
+  slug="backups"
+  title="Backups and recovery"
+  description="Take an encrypted backup of your vault, prove you can restore it, and know what each recovery path can and cannot do."
+  lede="Your vault exists on one machine. A failed drive is the ordinary way to lose it, and nothing is copied anywhere unless you copy it."
+>
+  <h2>Taking a backup</h2>
+  <Steps steps={[
+    'Open <strong>Settings</strong>, then the <strong>Data</strong> tab.',
+    'Click <strong>Create backup</strong> and choose where to write the <code>.sanctumbak</code> file.',
+    'Give the backup its own password. It can differ from your vault passphrase &mdash; it is what protects this file.',
+    'Copy the file somewhere off this machine: another drive, or storage you trust.',
+  ]} />
+
+  <p>
+    The file contains the whole encrypted database, sealed again under the backup password. Someone
+    holding it without that password gets nothing, and a file that has been altered by even one
+    byte is refused rather than partly trusted.
+  </p>
+
+  <Callout kind="warn" title="An untested backup is a guess">
+    <p>
+      The only way to know a backup works is to restore one, and the only safe time to find out is
+      before you need it.
+    </p>
+    <p>
+      Restoring replaces the current vault entirely, so do it deliberately &mdash; ideally straight
+      after taking a fresh backup, when losing the current state costs nothing.
+    </p>
+  </Callout>
+
+  <h2>The three ways back in</h2>
+  <p>Each covers a different failure, and knowing which is which matters when something goes wrong.</p>
+
+  <div class="twoUp">
+    <article class="tile">
+      <h3>You know the passphrase</h3>
+      <p>Ordinary unlock. Nothing else needed.</p>
+    </article>
+    <article class="tile">
+      <h3>You lost the passphrase</h3>
+      <p>
+        The recovery code opens the vault and lets you set a new passphrase. Your data is intact
+        &mdash; the code unwraps the same key.
+      </p>
+    </article>
+    <article class="tile">
+      <h3>You lost the machine</h3>
+      <p>
+        Install Sanctum elsewhere and restore your <code>.sanctumbak</code> with its password. You
+        get the vault as of that backup.
+      </p>
+    </article>
+    <article class="tile tile--warn">
+      <h3>You lost passphrase and code</h3>
+      <p>
+        The vault cannot be opened by anyone, including you. Only a backup and its password help
+        here. If neither exists, the data is gone permanently.
+      </p>
+    </article>
+  </div>
+
+  <h2>Changing your passphrase</h2>
+  <p>
+    Settings &rarr; Security. Changing it is fast regardless of how much is in the vault, because
+    your passphrase never encrypted the records directly &mdash; it wraps a key, and only that
+    wrapper is rewritten. Nothing is re-encrypted, so there is no window where a crash could leave
+    the vault half-converted.
+  </p>
+  <p>
+    Rotating the recovery code works the same way and requires your current passphrase. The old
+    code stops working immediately, so replace your stored copy at the same time.
+  </p>
+
+  <h2>Exporting to CSV</h2>
+  <p>
+    Settings &rarr; Data offers a CSV export, for moving to another tool. It is written with
+    permissions restricted to your user account, and Sanctum warns before writing it.
+  </p>
+
+  <Callout kind="danger" title="A CSV export is plaintext">
+    <p>
+      Every password in it is readable by anything that can read the file, and it is no longer
+      protected by anything Sanctum does. It also lands in a folder that may be synced to cloud
+      storage without you thinking about it.
+    </p>
+    <p>
+      Use it to migrate, then delete it &mdash; and remember that a deleted file is often
+      recoverable. Never use CSV as a backup format; the <code>.sanctumbak</code> container exists
+      for that and is encrypted.
+    </p>
+  </Callout>
+
+  <h2>Resetting the vault</h2>
+  <p>
+    Settings &rarr; Data has a Reset Vault action, which deletes every record along with your
+    display name and picture, and returns the app to first-run setup. It requires typing a
+    confirmation phrase.
+  </p>
+  <p>
+    Your recovery code will not bring anything back afterwards &mdash; it opens a vault, and there
+    will not be one. If there is any chance you want the data later, take a backup first.
+  </p>
+
+  <Callout kind="note" title="A gap worth knowing about">
+    <p>
+      Reset Vault lives in Settings, which needs an unlocked vault. If you have forgotten your
+      passphrase <em>and</em> your recovery code, you cannot reach it &mdash; the one situation
+      where you most want a reset is the one where the button is unreachable.
+    </p>
+    <p>
+      Until that is addressed, the workaround is to delete the vault file directly from
+      <code>%APPDATA%\dev.sanctum.vault</code>. Sanctum will start fresh on next launch.
+    </p>
+  </Callout>
+</Guide>

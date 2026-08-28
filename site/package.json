@@ -1,0 +1,29 @@
+{
+  "name": "sanctum-site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Marketing and documentation site for Sanctum. Deliberately a separate workspace from the desktop app - see README.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "test": "astro build && vitest run",
+    "test:watch": "vitest",
+    "test:unit": "vitest run"
+  },
+  "dependencies": {
+    "@astrojs/react": "^4",
+    "astro": "^5",
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5",
+    "vitest": "^3"
+  }
+}

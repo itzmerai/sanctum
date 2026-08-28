@@ -29,3 +29,16 @@ textarea,
 [contenteditable='true'] {
   user-select: text;
 }
+
+/* WebView2 draws its own password reveal control, which lands beside ours as a
+ * second, differently-styled eye - and worse, it is a reveal affordance the
+ * app does not own. Every password field here already has a deliberate toggle
+ * whose state the app controls, so the native one is suppressed everywhere.
+ *
+ * `::-ms-clear` goes with it: an unstyled clear button on a passphrase field
+ * is an easy way to wipe what you just typed by accident.
+ */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}

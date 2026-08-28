@@ -1,0 +1,11 @@
+/* The app's own design tokens, imported rather than copied (KTD3).
+ *
+ * This is the whole reason the interface shown on the site cannot drift from
+ * the interface the app renders: there is one definition, and it lives with
+ * the product. Changing an accent in the app changes it here on the next
+ * build.
+ *
+ * The file scopes theme to `:root[data-theme]`, so the site adopts the app's
+ * theming wholesale rather than scoping it to the replica - see ThemeToggle.
+ */
+@import '../../../src/theme/tokens.css';

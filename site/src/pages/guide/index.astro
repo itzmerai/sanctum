@@ -1,0 +1,35 @@
+---
+import Base from '../../layouts/Base.astro'
+import { GUIDES } from '../../layouts/Guide.astro'
+const base = import.meta.env.BASE_URL
+---
+<Base title="Sanctum guide" description="How to set up Sanctum and use it day to day: first run, credentials, .env files, backups and recovery.">
+  <div class="doc wrap">
+    <aside class="doc__rail">
+      <a class="backLink" href={base}>&larr; Landing page</a>
+    </aside>
+    <article class="doc__body">
+    <p class="eyebrow">Guide</p>
+    <h1>Setting up and using Sanctum</h1>
+    <p class="lede">
+      Four steps, in the order you will need them. The first one covers a decision you cannot
+      change later, so it is worth reading rather than clicking through.
+    </p>
+
+    <ol class="guideCards">
+      {GUIDES.map((guide, position) => (
+        <li>
+          <a class="guideCard" href={`${base}guide/${guide.slug}/`}>
+            <span class="guideCard__num">{position + 1}</span>
+            <span>
+              <span class="guideCard__title">{guide.title}</span>
+              <span class="guideCard__blurb">{guide.blurb}</span>
+            </span>
+            <span class="guideCard__go">&rarr;</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+    </article>
+  </div>
+</Base>
